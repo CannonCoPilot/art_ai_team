@@ -1,0 +1,28 @@
+# Core dependencies
+Pillow>=10.4.0
+numpy>=1.26.0
+pyyaml>=6.0.1
+
+# Google APIs
+google-cloud-vision>=3.10.0 # For potential fallback or specific vision tasks
+google-generativeai>=0.8.0 # For Gemini models
+google-api-python-client>=2.100.0 # For Google Search API
+google-auth>=2.20.0 # Ensure compatible auth library
+google-auth-httplib2>=0.2.0
+google-api-core>=2.15.0
+
+# Grok API
+groq>=0.9.0
+
+# Testing
+pytest>=7.4.0
+pytest-cov>=4.1.0
+
+# Logging
+python-json-logger>=2.0.7
+
+# Image processing (Optional, if needed beyond Pillow)
+# opencv-python>=4.8.0
+
+# Font support (for labeled image generation)
+fonttools>=4.50.0
