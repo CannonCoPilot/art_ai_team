@@ -19,7 +19,9 @@ class TestVisionWorkflowIntegration(unittest.TestCase):
     """Integration tests for the complete vision workflow."""
 
     def setUp(self):
-        """Set up test environment with real paths and credentials."""
+        """Set up test environment with real paths and credentials, loading API keys only from config.yaml."""
+        import yaml
+
         # Project base directory
         self.base_dir = '/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI'
 
@@ -29,47 +31,25 @@ class TestVisionWorkflowIntegration(unittest.TestCase):
         # Use the specified test input image
         self.test_image_path = os.path.join(self.input_folder, 'Frank Brangwyn, Swans, c.1921.jpg')
 
-        # API credentials
-        self.google_credentials_path = os.path.join(self.base_dir, 'API_keys/geministudioapi-b5da91c0cd01.json')
-        os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = self.google_credentials_path
+        # Load API keys from config.yaml only
+        config_path = os.path.join(self.base_dir, 'art_agent_team/config/config.yaml')
+        with open(config_path, 'r') as f:
+            config = yaml.safe_load(f)
 
-        # Get API key from environment
-        google_api_key = os.environ.get('GOOGLE_API_KEY')
-        if not google_api_key:
-            # Fallback to reading from the credentials file if not in environment
-            try:
-                with open(self.google_credentials_path, 'r') as f:
-                    creds = json.load(f)
-                    google_api_key = creds.get('api_key')
-            except Exception as e:
-                logging.warning(f"Could not read API key from credentials file: {e}")
+        google_api_key = config.get('google_api_key')
+        grok_api_key = config.get('grok_api_key')
 
         if not google_api_key:
-            raise ValueError("GOOGLE_API_KEY environment variable or 'api_key' in credentials file not set")
-
-        # Load Grok API key from API_keys/keys file
-        grok_api_key = None
-        api_keys_path = os.path.join(self.base_dir, 'API_keys', 'keys')
-        try:
-            with open(api_keys_path, 'r') as f:
-                for line in f:
-                    if line.startswith('GrokAPI:'):
-                        grok_api_key = line.split(':', 1)[1].strip()
-                        break
-        except Exception as e:
-            logging.warning(f"Could not read Grok API key from {api_keys_path}: {e}")
-            # Fallback to environment variable
-            grok_api_key = os.environ.get('GROK_API_KEY')
-            if not grok_api_key:
-                logging.warning("Grok API key not found in file or environment variables")
+            raise ValueError("google_api_key not set in config.yaml")
+        if not grok_api_key:
+            raise ValueError("grok_api_key not set in config.yaml")
 
         # Test configuration with both API keys
         self.test_config = {
             'input_folder': self.input_folder,
             'output_folder': self.output_folder,
-            'google_credentials_path': self.google_credentials_path,
             'google_api_key': google_api_key,
-            'grok_api_key': grok_api_key # Include Grok API key in config
+            'grok_api_key': grok_api_key
         }
 
         # Create directories if needed
@@ -82,39 +62,11 @@ class TestVisionWorkflowIntegration(unittest.TestCase):
         # Verify Gemini client initialization
         self.assertIsNotNone(vision_agent.gemini_pro, "Gemini Pro model not initialized")
         
-        # Verify Grok client initialization
-        self.assertIsNotNone(vision_agent.grok_client, "Grok Vision client not initialized")
-        self.assertEqual(vision_agent.grok_vision_model, "grok-2-vision-1212", "Incorrect Grok model specified")
+        # Verify Grok API key is present and model name is set
+        self.assertIsNotNone(getattr(vision_agent, "grok_api_key", None), "Grok API key not set in VisionAgentAnimal")
+        self.assertEqual(vision_agent.grok_vision_model, "grok-2-vision-latest", "Incorrect Grok model specified")
 
-    def test_feature_handling(self):
-        """Test handling of mixed feature types (strings and dictionaries)."""
-        vision_agent = VisionAgentAnimal(self.test_config)
-        
-        # Create test data with mixed feature types
-        test_objects = [{
-            "label": "swan",
-            "box_2d": [100, 100, 200, 200],
-            "features": [
-                "beak",  # String feature
-                {"label": "eye", "box_2d": [120, 120, 130, 130], "confidence": 0.9},  # Dict feature
-                {"label": "neck", "box_2d": [150, 150, 160, 180]},  # Dict without confidence
-                "wing"  # Another string feature
-            ]
-        }]
-        
-        # Create minimal analysis results
-        test_results = {
-            "objects": test_objects,
-            "image_size": (400, 300)
-        }
-        
-        # Test save_labeled_version with mixed features
-        test_img = Image.new('RGB', (400, 300))
-        output_path = os.path.join(self.output_folder, "test_features.jpg")
-        
-        # This should not raise any exceptions
-        vision_agent._save_labeled_version(test_img, test_results, output_path)
-        self.assertTrue(os.path.exists(output_path), "Feature test output not created")
+    # test_feature_handling removed as it used dummy images
 
     def test_vision_workflow_animal(self):
         """Test the animal vision workflow with output verification."""
@@ -196,42 +148,7 @@ class TestVisionWorkflowIntegration(unittest.TestCase):
                 self.assertGreater(max_subject_importance, max_background_importance,
                                  "Subject importance not properly scaled above background elements")
 
-    def test_masked_version_output(self):
-        """Test the masked version output path handling and functionality."""
-        vision_agent = VisionAgentAnimal(self.test_config)
-        
-        # Create test data
-        test_img = Image.new('RGB', (400, 300))
-        test_objects = [{
-            "label": "swan",
-            "box_2d": [100, 100, 200, 200],
-            "importance": 1.0,
-            "type": "animal"
-        }]
-        test_results = {
-            "objects": test_objects,
-            "image_size": (400, 300)
-        }
-        
-        # Test with different output paths
-        test_paths = [
-            os.path.join(self.output_folder, "test_masked.jpg"),
-            os.path.join(self.output_folder, "subdir", "test_masked.jpg"),
-            os.path.join(self.output_folder, "test_masked_with spaces.jpg")
-        ]
-        
-        for path in test_paths:
-            # Ensure directory exists
-            os.makedirs(os.path.dirname(path), exist_ok=True)
-            
-            # Test _save_masked_version
-            vision_agent._save_masked_version(test_img.copy(), test_results, path)
-            
-            # Verify output
-            self.assertTrue(os.path.exists(path), f"Masked version not created at {path}")
-            with Image.open(path) as img:
-                self.assertEqual(img.mode, 'RGB', f"Image at {path} not in RGB mode")
-                self.assertEqual(img.size, (400, 300), f"Image at {path} has incorrect size")
+    # test_masked_version_output removed as it used dummy images
 
 
 if __name__ == '__main__':

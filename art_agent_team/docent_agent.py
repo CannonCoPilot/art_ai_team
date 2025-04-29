@@ -85,27 +85,31 @@ class DocentAgent:
 
         # --- Extract API Keys from Config and Set Environment Variables ---
         google_api_key = config.get('google_api_key')
-        grok_api_key = config.get('grok_api_key')
+        grok_api_key   = config.get('grok_api_key')
 
         if google_api_key:
             os.environ['GOOGLE_API_KEY'] = google_api_key
-            logging.info("Google API Key loaded from config and set as environment variable.")
+            logging.info("Google API Key loaded from config.")
         else:
             logging.warning("google_api_key not found in config.yaml.")
-            # Optionally remove from env vars if previously set
             if 'GOOGLE_API_KEY' in os.environ: del os.environ['GOOGLE_API_KEY']
-
 
         if grok_api_key:
             os.environ['GROK_API_KEY'] = grok_api_key
-            logging.info("Grok API Key loaded from config and set as environment variable.")
+            logging.info("Grok API Key loaded from config.")
         else:
             logging.warning("grok_api_key not found in config.yaml.")
             if 'GROK_API_KEY' in os.environ: del os.environ['GROK_API_KEY']
 
-        # No need to read API_keys/keys file anymore
-
-        # Return the loaded config dictionary (which includes the keys)
+        # Also set OPENAI_API_KEY so openai-based calls pick it up
+        openai_key = config.get('openai_api_key') or grok_api_key
+        if openai_key:
+            os.environ['OPENAI_API_KEY'] = openai_key
+            logging.info("OpenAI API Key set for LLM calls.")
+        else:
+            logging.warning("openai_api_key not in config; OPENAI_API_KEY unset.")
+            if 'OPENAI_API_KEY' in os.environ: del os.environ['OPENAI_API_KEY']
+        
         return config
 
     def start_workflow(self):

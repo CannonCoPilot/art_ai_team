@@ -130,11 +130,98 @@ This document outlines the plan for developing a team of AI agents to process an
 * Then modify the cropping logic by integrating face-detection so that when a single or few large promary or secondary subjects dominate the image, the cropping boundary will include as many detected faces as possible.
 * Create logic that can identify faces as their own scored objects.  These should be the highest scoring features.  The portrait and figurative vision agents should identify human faces and the animal-scene agent should identify animal faces.  When possible the cropping algorithm should attempt to keep face objects within the cropping boundary.
 * Create tests that will output the number and types of objects identified by the vision model.  Have the test script present all of the information from the returned output of the model in a table format, and also save as a csv file, to compare those results with a visual inspection of the image.
-
 * Explore and adopt sophisticated high-polygon segmental masking algorithms and techniques to minimize unnecessary penalties when cropping around objects.
-
 * API calls sent to grok and gemini models by the vision agents will be essentially and functionally equivalent, allowing for the minor structural differences in the APIs.  This is so that 
-
-Make all necessary changes.
+* API keys should be properly parsed from the config file and stored as environmental variables.
 
 # To add details to the agents and workflow
+The overall purpose of this redesign is to have the DocentAgent do a preliminary search on the artwok in question.  The DocentAgent will use text from the image file name to to a text-based web search, and use the image to do an image search.  It will then create a custom prompt that will be passed as a texts string for the VisionAgent to add to it's prompts.  The Vision agent will use the custom prompt text from the DocentAgent to decide among several object detection and scoring algorithms.  There will be a different algorithm with different prompt text for each of several different categories of artwork.  Here is the workflow in more detail:
+
+1) DocentAgent interacts with the user. It prompts the user to provide a path to image files for processing.  It explains to the user the steps of processing the images. DocentAgent then fetches the image files from the input folder.  It then hands each image to a ResearchAgent.
+2) There are many ResearchAgents that interact asyncronously with DocentAgent and with the various customized VisionAgents. ResearchAgents perform a text web search using the tokens from the image filename and returns a brief summary description of the artwork.
+3) ResearchAgents perform an image web search using the image and returns a brief summary description of the artwork.
+4) ResearchAgents compare these two summary decriptions to confirm that it has correctly identified the artwork.
+5) ResearchAgents combine the information from the two summaries and rewrites a paragraph-length description of the artwork.
+6) ResearchAgents use their knowledge of the artwork to write a one sentence description of the artwork in the format: "This is a(n) {style} painting of a(n) {primary_subject} {description_of_action} set in a {description_of_scene}, together with {secondary_subjects}."  
+   6a) For this key description the ResearchAgents will choose from the following values to assign to the following parameters, or will use the following rules:
+style = {abstract, landscape, still life, surrealist, genre-scene, animal-scene, portrait, figurative, religious/historical}
+   6b) primary_subject = the ResearchAgents should provide a simple phrase describing what it believes to be the main subject (ie primary focus of the painting).  
+   6c) If the painting style is 'landscape' then the primary subject should be defined as the main landscape feature (e.g. valley, mountain, river). 
+   6d) If the painting is 'abstract' then the primary subject should be defined with a short descriptive phrase of the shapes that appear.
+   6e) If the painting is surrealist then the primary subject should be defined with a short descriptive phrase about the scene.
+   6f) description_of_action = the ResearchAgents should provide a short phrase describing the action, or attitude, or position, of the primary subject, or of the spatial relationship of the main subject in relation to the scene of the painting. 
+   6g) description_of_scene = the ResearchAgents should provide a short phrase describing the scene in which the primary subject and secondary subjects are set.
+   6h) secondary_subjects = the ResearchAgents will provide a list of other important subjects in the painting.  To do this it will evaluate up to 10 objects as candidates for secondary subjects, it should choose 1-3 objects as secondary subjects based on their visual prominence or contextual importance as depends on the nature of the scene.
+7) Each ResearchAgent will then call VisualAgent and pass to it a list containing the image filename, paragraph-length summary description, and the standard-format simple description for the image file it has processed.
+8) VisualAgent will fetch the image file found in the dictionary passed to it by ResearchAgent.
+9) VisualAgent will parse the simple description to get the painting style.  Depending on the style the VisualAgent will select one of several function-prompt-constructs (see e.g. 'analyze_image' function) which are customized to visually analyze art of that style.  It will identify and score objects, create box-boundaries around the objects, and create hi-poly segmentation masks for the highest scoring objects.
+10) The primary subject's score will always be increased to 2x the highest score from among all other objects, or keep its own raw score, whichever is greater.
+11) The VisualAgent's function-prompt-constructs will each follow the same general process (see analyze_image, _calculate_object_importance, _threshold_important_objects and other functions) but will be customized to best handle the kinds of primary and secondary subjects typical of each genre of painting.
+12) For coding simplicity and cleanliness, it may be best to create 'clones' of the VisionAgent and then further customize each one independently.  This will avoid unneccessarily re-writing and potentially breaking a single very large Agent script, and will allow for independent testing of each VisionAgent, and for individual modification of each VisionAgent.
+13) The VisionAgent(s) should take the customized description and summary texts from the ResearchAgent and incorporate them into their  pre-written prompt(s) to send to vision-capable models.
+14) The current 'template' VisionAgent workflow should be modified to utilize TWO image-input able AI models.  The VisionAgent(s) will send their customized prompts to 'grok-2-vision-1212' and to 'gemini-2.5-pro-preview-03-25'.
+15) The VisionAgent will aggregate the object identification results of both AI models into a unified set of object localizations with category labels (or labels to be used for categorization) to be used for calculating object importance scores.
+16) The VisionAgent(s) will then proceed through the rest of the workflow, basically as currently defined, to create an optimized 16:9 cropping of the image. It will continue to output a labelled, masked, and cropped version of each image it processes.
+17) The cropping algorithm for each VisionAgent variation will be customized, following these general rules:
+   Abstract - Bounding boxes should localize the abstract shapes of significant size in the image. Then the VisionAgentAbstract should calculate a weighted centroid of the identified shapes in the image. Then it adjusts the cropping boundary to be as centered on the centroid as possible while maintaining 16:9 ratio and maximizing its size.
+   Landscape - Bounding boxes should localize important landscape features (e.g. prominent distant mountains, waterfalls, rivers, foreground plants or rocks, and so on).  Scoring shuold effectively discount small objects, unless they are very contextually important.  Then it should create hi-poly segmentation masks of the three most prominent/important high-scoring objects.  Then it should adjust the 16:9 cropping boundary to try to avoid bisecting the segmentation masks.  If it must bisect masks to crop to 16:9 it should bisect the masks beginning with the lowest scoring of the three high-prominence objects, finally only truncating the mask fo the principle_subject if necessary to enforce the 16:9 aspect ratio.  It should generally truncate the primary subject from bottom up when cropping in the y-axis direction.  It should maintain the centrality or offset nature of the primary subject if cropping it in the x-azis direction. It should give a warning if it truncates the primary subject.
+   Still life - Bounding boxes should localize the fruit, plants, flowers, food, and everyday objects grouped near the center of the image.  Scoring should effectively discount identified objects outside of this central cluster.  The cropping boundary should preserve the approximate x,y centrality or offset of the centroid of the central cluster of objects.
+   Surrealist - Bounding boxes are likely to localize objects which defy conventional categorization.  Object scoring should be based on perceived context and importance.  Cropping should otherwise generally follow the logic laid out in the 'Landscape' algorithm.
+   Portrait - Bounding boxes should principally localize the facial features of the face and head of the individual in the portrait.  Bounding boxes may also localize other objects of contextual significance.  Scoring of objects should effectively discount background features.  The cropping boundary should attempt to maintain the centrality or offset of the cluster of bounding boxes that define the facial features of the primary subject, and should aim to avoid cropping the facial features of any secondary subjects if possible.
+   Figurative - Bounding boxes should localize the facial features of primary and secondary subjects, and shuold localize the entirety of the figures of teh primary and secondary subjects.  The cropping boundary should prioritize keeping the faces of the subjects, then the figures of the subjects, and lastly preserve the original centrality or offset of the primary subject.
+   Genre-scene - Bounding boxes might identify a large number of individual people or animals. Scoring should be optimized to discard background objects, and people in crowds, and should indicate the higher importance of primary and secondary subjects and foreground objects.
+   Religious/Historical - Bounding boxes might identify a large number of individual people or animals. Scoring should be optimized to discard background objects, and people in crowds, and should indicate the higher importance of primary and secondary subjects and foreground objects.  The cropping boundary should seek to preserve the centrality of contextion action within the scene, and keep the primary subject in frame. 
+   Animal-scene - Bounding boxes might identify a large number of individual animals. Scoring should be optimized to discard animals and objects in the distant background and should indicate the higher importance of primary and secondary subjects and foreground objects.  Idenfification of animal faces should be done using a modified key-word set of features (e.g. including animal face terms like beak, snout, muzzle, mane, tongue among the other facial descriptors used in 'portrait' and 'figurative' feature identification.
+18) The DocentAgent should be able to create a 'stack' of images to be handed off to the various ResearchAgents.  It will asynchronously communicate with those ResearchAgents from that 'stack' whenever one ResearchAgent has completed its work on the previous image and handed it off to the correct VisionAgent. 
+19) VisionAgents should have a hand-off function to put cropped images into another 'stack' for the UpscaleAgent to pull from.
+
+Parallel Instances of ResearchAgents and of VisionAgents
+You do not need multiple copies of the ResearchAgent script to achieve parallel, asynchronous research. In fact, having multiple copies of the same script is unnecessary and can make maintenance harder.
+
+How it works (and should work):
+
+You can run multiple instances of the same ResearchAgent class, each in its own thread or process.
+Each instance can independently perform web searches and communicate asynchronously with a single DocentAgent instance, using thread-safe queues (as your current architecture does).
+The DocentAgent can coordinate these agents, distribute work, and collect results, then route them to the appropriate VisionAgent specialists.
+Why this works
+Python classes are reusable: You can instantiate the same class as many times as you want, each with its own state.
+Thread/process safety: As long as shared data is managed via thread-safe mechanisms (like Queue), you can safely run many agents in parallel.
+Simpler maintenance: You only need to update/fix one ResearchAgent script, not eight.
+
+Plan:
+
+Update Art_Agent_Team_Plan.md: Reflect the new workflow described by the user.
+Refactor DocentAgent:
+Implement user interaction for image path input.
+Explain processing steps to the user.
+Fetch images from the input folder.
+Create an image processing "stack" (e.g., a queue or list).
+Implement asynchronous communication logic to hand off images to ResearchAgent instances.
+Manage the stack and track progress.
+Create/Refactor ResearchAgent:
+Implement text-based web search using image filename tokens.
+Implement image-based web search.
+Compare search results for confirmation.
+Generate paragraph-length description.
+Generate the structured one-sentence description based on style rules.
+Implement logic for selecting primary/secondary subjects based on prominence/context.
+Pass image filename, summary, and structured description to the appropriate VisionAgent.
+Refactor VisionAgent (Template):
+Remove hardcoded input folder logic (will receive path from ResearchAgent).
+Accept image path, summary, and structured description.
+Parse the style from the structured description.
+Implement logic to select/route to a style-specific VisionAgent clone (or use conditional logic within a single agent initially).
+Modify analyze_image to incorporate the summary/description into prompts for grok-2-vision-1212 and gemini-2.5-pro-preview-03-25.
+Implement aggregation logic for results from both models.
+Keep the core analysis, scoring, masking, and cropping logic as a base.
+Implement hand-off function/mechanism for UpscaleAgent.
+Create VisionAgent Clones (or implement conditional logic):
+Create specialized versions (or conditional blocks) for each style: abstract, landscape, still life, surrealist, genre-scene, animal-scene, portrait, figurative, religious/historical.
+Customize the analyze_image prompt, object scoring (_calculate_object_importance), and cropping logic (_find_optimal_crop, _evaluate_crop) for each style according to the rules provided.
+Ensure primary subject scoring rule (2x highest other score or raw score) is implemented.
+Refactor UpscaleAgent:
+Implement logic to pull cropped images from the VisionAgent hand-off stack/queue.
+Perform upscaling (details not specified, assume basic upscale for now).
+Update main.py: Orchestrate the new workflow, initializing agents and managing the flow.
+Update requirements.txt: Add any new dependencies (e.g., web search libraries, async libraries).
+Update Tests: Adapt existing tests and create new ones for the refactored agents and workflow.

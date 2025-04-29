@@ -21,17 +21,37 @@ from typing import List, Dict, Optional, Any
 class ResearchAgent:
     """Researches artwork using web search and LLMs."""
 
-    def __init__(self, config: Dict[str, Any], vision_agent_classes: Dict[str, type]):
+    def __init__(self, config, vision_agent_classes):
         self.config = config
         self.agent_id = random.randint(10000, 99999) # Generate unique 5-digit ID
         self.vision_agent_classes = vision_agent_classes # Store the vision agent classes
-        self.search_api_key = config.get('google_search_api_key', os.environ.get('GOOGLE_SEARCH_API_KEY'))
-        self.search_engine_id = config.get('google_search_engine_id', os.environ.get('GOOGLE_SEARCH_ENGINE_ID'))
+        self.search_api_key = config.get('google_search_api_key')
+        self.search_engine_id = config.get('google_search_engine_id')
         
+        # Configure Grok (OpenAI‑compatible) key
+        grok_key = config.get('grok_api_key')
+        if grok_key:
+            try:
+                import openai
+                openai.api_key = grok_key
+            except ImportError:
+                logging.warning("openai not installed; cannot set openai.api_key.")
+        else:
+            logging.warning("grok_api_key missing in config for ResearchAgent.")
+
+        # Configure Gemini (Google) key
+        gemini_key = config.get('google_api_key')
+        if gemini_key:
+            try:
+                import google.generativeai as genai
+                genai.configure(api_key=gemini_key)
+            except ImportError:
+                logging.warning("google.generativeai not installed; cannot configure Gemini.")
+        else:
+            logging.warning("google_api_key missing in config for ResearchAgent.")
+
         # Initialize Grok LLM client
-        grok_api_key = self.config.get('grok_api_key', os.environ.get('GROK_API_KEY'))
-        logging.debug(f"ResearchAgent {self.agent_id}: Loaded Groq API key: {grok_api_key}")  # Add debugging log for Groq API key
-        logging.debug(f"ResearchAgent {self.agent_id}: Loaded Groq API key: {grok_api_key}")  # Add debugging log for Groq API key
+        grok_api_key = self.config.get('grok_api_key')
         logging.debug(f"ResearchAgent {self.agent_id}: Loaded Groq API key: {grok_api_key}")  # Add debugging log for Groq API key
         if grok_api_key:
             try:
@@ -91,7 +111,7 @@ class ResearchAgent:
             logging.error("openai package is required for Grok 3 API search.")
             return []
 
-        grok_api_key = self.config.get('grok_api_key', os.environ.get('GROK_API_KEY'))
+        grok_api_key = self.config.get('grok_api_key')
         if not grok_api_key:
             logging.error("No Grok API key found for text search.")
             return []
@@ -149,7 +169,7 @@ class ResearchAgent:
             logging.error("google.generativeai types (Tool, GenerateContentConfig, GoogleSearch) could not be imported. Ensure the package installation is complete and correct.")
             return []
 
-        google_api_key = self.config.get('google_api_key', os.environ.get('GOOGLE_API_KEY'))
+        google_api_key = self.config.get('google_api_key')
         if not google_api_key:
             logging.error("No Google API key found for Gemini search.")
             return []

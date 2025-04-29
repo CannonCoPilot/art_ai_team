@@ -7,7 +7,7 @@ import io
 from PIL import Image, ImageDraw, ImageFont, ImageColor
 import google.generativeai as genai
 from google.generativeai.types import GenerationConfig
-from groq import Groq # Import Grok client
+from openai import OpenAI
 from dataclasses import dataclass
 from typing import List, Tuple, Optional, Dict, Any
 import math # Needed for centroid calculation
@@ -50,18 +50,14 @@ class VisionAgentAnimal:
             self.gemini_pro = None
 
         # Initialize Grok Vision model
-        grok_api_key = self.config.get('grok_api_key', os.environ.get('GROK_API_KEY'))
-        if grok_api_key:
-            try:
-                self.grok_client = Groq(api_key=grok_api_key)
-                self.grok_vision_model = "grok-2-vision-1212" # As requested
-                logging.info(f"VisionAgentAnimal: Grok Vision client initialized with model {self.grok_vision_model}.")
-            except Exception as e:
-                logging.error(f"VisionAgentAnimal: Failed to initialize Grok Vision client: {e}")
-                self.grok_client = None
-        else:
+        self.grok_api_key = self.config.get('grok_api_key')
+        if not self.grok_api_key:
             logging.error("VisionAgentAnimal: No Grok API key found.")
-            self.grok_client = None
+        self.grok_vision_model = "grok-2-vision-latest"
+        self.grok_client = OpenAI(
+            api_key=self.grok_api_key,
+            base_url="https://api.x.ai/v1",
+        ) if self.grok_api_key else None
 
         # Colors for visualization
         self.colors = ['red', 'green', 'blue', 'yellow', 'orange', 'pink', 'purple',
@@ -91,8 +87,7 @@ class VisionAgentAnimal:
                 content = image_file.read()
 
             img = Image.open(io.BytesIO(content))
-            # Resize for faster processing, maintain aspect ratio
-            img.thumbnail([1024, 1024], Image.Resampling.LANCZOS)
+            # Removed resampling to always use full resolution image
 
             # Initialize results structure
             results = {
@@ -108,16 +103,16 @@ class VisionAgentAnimal:
             # Animal-specific prompt focusing on animals, faces, and interactions
             animal_prompt = f"""
             Analyze this animal painting. Focus on identifying and localizing all animals, especially their faces and distinctive features (beaks, snouts, manes, etc.). Note interactions between animals or with the environment.
-            
+
             Research Information:
             Paragraph Summary: {paragraph_description}
             Structured Sentence: {structured_sentence}
 
-            Identify objects and their bounding boxes [y0, x0, y1, x1] (normalized 0-1000). Prioritize:
-            - All animals (full bodies)
-            - Animal faces/heads (beaks, snouts, muzzles, eyes, ears, manes, crests)
-            - Interactions between animals
-            - Animals in the foreground (more important) vs. background (less important)
+            Instructions:
+            - For each full animal body and each face/head, return a dictionary with "label" and "box_2d" (bounding box coordinates).
+            - For each facial feature (including but not limited to: beak, snout, muzzle, nose, mouth, teeth, eye, eyes, ears, mane, crest, neck, gills, horns, antlers), return a dictionary with "label" and "coordinates" (e.g., [x, y] in image pixel space or normalized 0-1000).
+            - For other features (e.g., wings, paws, feet, tail, etc.) that do not have a specific location, you may return them as strings.
+            - Do not return facial features as strings if you can provide coordinates.
 
             For each identified object, provide:
             - label: Concise description (e.g., "swan", "swan's head", "ducks swimming")
@@ -125,7 +120,7 @@ class VisionAgentAnimal:
             - confidence: 0.0-1.0
             - type: Category (e.g., "animal", "animal_face", "group_of_animals", "interaction")
             - importance: Initial estimate 0.0-1.0 (will be refined by agent)
-            - features: List of detected facial features if applicable (e.g., ["beak", "eye"])
+            - features: List of detected features, each as a dictionary with "label" and "coordinates" for facial features, or as a string for other features.
 
             Format as JSON:
             {{
@@ -136,7 +131,11 @@ class VisionAgentAnimal:
                         "confidence": ...,
                         "type": "...",
                         "importance": ...,
-                        "features": [...]
+                        "features": [
+                            {{"label": "beak", "coordinates": [x, y]}},
+                            {{"label": "eye", "coordinates": [x, y]}},
+                            "wing"
+                        ]
                     }}
                 ]
             }}
@@ -166,20 +165,42 @@ class VisionAgentAnimal:
             # 2. Grok Vision Analysis
             grok_objects = []
             if self.grok_client:
-                 try:
+                try:
+                    def encode_image(image_path):
+                        with open(image_path, "rb") as image_file:
+                            encoded_string = base64.b64encode(image_file.read()).decode("utf-8")
+                        return encoded_string
+
+                    base64_image = encode_image(image_path)
+                    messages = [
+                        {
+                            "role": "user",
+                            "content": [
+                                {
+                                    "type": "image_url",
+                                    "image_url": {
+                                        "url": f"data:image/jpeg;base64,{base64_image}",
+                                        "detail": "high",
+                                    },
+                                },
+                                {
+                                    "type": "text",
+                                    "text": animal_prompt,
+                                },
+                            ],
+                        },
+                    ]
                     grok_response = self.grok_client.chat.completions.create(
-                        messages=[
-                            {"role": "user", "content": [{"type": "text", "text": animal_prompt}, {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64.b64encode(content).decode('utf-8')}"}}]}
-                        ],
                         model=self.grok_vision_model,
+                        messages=messages,
                         temperature=0.4,
-                        max_tokens=2048
+                        max_tokens=2048,
                     )
                     grok_results = self._parse_grok_response(grok_response.choices[0].message.content)
                     if grok_results and "objects" in grok_results:
                         grok_objects = grok_results["objects"]
                         logging.info(f"VisionAgentAnimal: Grok Vision identified {len(grok_objects)} objects.")
-                 except Exception as e:
+                except Exception as e:
                     logging.error(f"VisionAgentAnimal: Error in Grok Vision analysis: {e}")
 
 
@@ -357,211 +378,77 @@ class VisionAgentAnimal:
 
 
     def _save_labeled_version(self, img: Image.Image, analysis_results: Dict[str, Any], output_path: str) -> None:
-        """Save version with bounding boxes and labels."""
+        """Save version with bounding boxes for objects and labels for facial features."""
         try:
-            # Ensure image is in RGBA mode for drawing with transparency
             if img.mode != 'RGBA':
                 img = img.convert('RGBA')
             draw = ImageDraw.Draw(img)
             width, height = img.size
 
-            # Draw bounding boxes and labels for all objects
+            # Build a map of feature colors based on unique labels in the data
+            feature_labels = set()
+            for obj in analysis_results.get("objects", []):
+                for feature in obj.get("features", []):
+                    if isinstance(feature, dict) and "coordinates" in feature:
+                        feature_labels.add(feature.get("label", "").lower())
+            feature_colors = {label: self.colors[i % len(self.colors)] 
+                            for i, label in enumerate(sorted(feature_labels))}
+
+            # Draw bounding boxes for objects and labels for facial features
             for i, obj in enumerate(analysis_results.get("objects", [])):
                 obj_type = obj.get("type", "").lower()
                 color = self.colors[i % len(self.colors)]
-                box = obj["box_2d"]
+                
+                # Draw object bounding box and label if box_2d exists
+                if "box_2d" in obj:
+                    box = obj["box_2d"]
+                    x0 = int(box[1] * width / 1000)
+                    y0 = int(box[0] * height / 1000)
+                    x1 = int(box[3] * width / 1000)
+                    y1 = int(box[2] * height / 1000)
+                    
+                    # Draw the box
+                    line_width = 3 if 'face' in obj_type or 'head' in obj_type else 2
+                    draw.rectangle([x0, y0, x1, y1], outline=color, width=line_width)
+                    
+                    # Draw simple object label above the box
+                    label_text = f"{obj.get('label', '')} ({obj.get('importance', 0):.2f})"
+                    draw.text((x0, y0 - 15), label_text, fill=color)
 
-                # Get raw coordinates from model
-                raw_box = obj["box_2d"]  # [y0, x0, y1, x1]
-
-                # Convert to image coordinates without adjustments
-                x0 = int(raw_box[1] * width / 1000)
-                y0 = int(raw_box[0] * height / 1000)
-                x1 = int(raw_box[3] * width / 1000)
-                y1 = int(raw_box[2] * height / 1000)
-
-                # Draw center point marker (Red 'X')
-                center_x = (x0 + x1) // 2
-                center_y = (y0 + y1) // 2
-                marker_size = 10
-                draw.line([center_x - marker_size, center_y - marker_size,
-                          center_x + marker_size, center_y + marker_size],
-                         fill='red', width=2)
-                draw.line([center_x - marker_size, center_y + marker_size,
-                          center_x + marker_size, center_y - marker_size],
-                         fill='red', width=2)
-
-                # Draw original bounding box
-                line_width = 4 if 'face' in obj_type or 'head' in obj_type else 2
-                draw.rectangle([x0, y0, x1, y1], outline=color, width=line_width)
-
-                # Draw object label with raw coordinates for debugging
-                label_parts = [
-                    f"{obj['label']} ({obj.get('importance', 0):.2f})",
-                    f"Type: {obj.get('type', 'unknown')}",
-                    f"Raw coords: [{raw_box[0]:.0f}, {raw_box[1]:.0f}, {raw_box[2]:.0f}, {raw_box[3]:.0f}]"
-                ]
-                if 'orientation' in obj:
-                    label_parts.append(f"View: {obj['orientation']}")
-
-                # Draw multi-line label with background for readability
-                for j, text in enumerate(label_parts):
-                    text_pos = (x0, y0-20-(j*15))
-                    text_bbox = draw.textbbox(text_pos, text)
-                    bg_box = [
-                        text_bbox[0]-2, text_bbox[1]-2,
-                        text_bbox[2]+2, text_bbox[3]+2
-                    ]
-                    draw.rectangle(bg_box, fill=(0, 0, 0, 180)) # Semi-transparent black background
-                    draw.text(text_pos, text, fill=color)
-
-                # Draw features if present
+                # Draw facial features with coordinates
                 features = obj.get("features", [])
-                if features:
-                    for j, feature in enumerate(features):
-                        # Ensure feature is a dictionary before processing
-                        if isinstance(feature, dict):
-                            # Color coding for different feature types
-                            feature_colors = {
-                                'right_eye': 'blue',
-                                'left_eye': 'blue',
-                                'nose': 'green',
-                                'lips': 'red',
-                                'mouth': 'red',
-                                'teeth': 'white',
-                                'right_ear': 'purple',
-                                'left_ear': 'purple',
-                                'hairline': 'yellow',
-                                'neck': 'orange',
-                                'beak': 'gold',
-                                'snout': 'brown'
-                            }
-                            feature_color_name = feature_colors.get(feature.get('label', '').lower(),
-                                                                  self.colors[(i + j + 1) % len(self.colors)])
+                for j, feature in enumerate(features):
+                    if isinstance(feature, dict) and "coordinates" in feature:
+                        label = feature.get("label", "").lower()
+                        coordinates = feature["coordinates"]
+                        
+                        # Normalize coordinates to image dimensions
+                        if max(coordinates) <= 1.5:  # Assume 0-1 normalized
+                            x_coord = int(coordinates[0] * width)
+                            y_coord = int(coordinates[1] * height)
+                        elif max(coordinates) > 100:  # Assume 0-1000 normalized
+                            x_coord = int(coordinates[0] * width / 1000)
+                            y_coord = int(coordinates[1] * height / 1000)
+                        else:  # Assume raw pixel coordinates
+                            x_coord = int(coordinates[0])
+                            y_coord = int(coordinates[1])
+                        
+                        # Draw feature label at coordinates
+                        feature_color = feature_colors.get(label, color) # Use object color if label not found
+                        draw.text((x_coord, y_coord), label, fill=feature_color)
+                    elif isinstance(feature, str):
+                        logging.warning(f"Skipping non-facial feature: {feature}")
+                    else:
+                        # Log warning for other invalid feature types
+                        logging.warning(f"Skipping non-facial feature: {feature}")
 
-                            # Adjust color intensity based on status and confidence
-                            confidence = feature.get('confidence', 0.5)
-                            status = feature.get('status', 'full')
-                            base_color_rgb = ImageColor.getrgb(feature_color_name)
-
-                            # For partial/occluded features, use lighter/desaturated colors
-                            if status != 'full':
-                                fade_factor = 0.6 if status == 'partial' else 0.4
-                                r, g, b = base_color_rgb
-                                r = int(r + (255 - r) * (1 - fade_factor))
-                                g = int(g + (255 - g) * (1 - fade_factor))
-                                b = int(b + (255 - b) * (1 - fade_factor))
-                                base_color_rgb = (r, g, b)
-
-                            feature_box = feature.get("box_2d") # Use .get() for safety
-                            if not feature_box:
-                                logging.warning(f"Skipping feature without 'box_2d': {feature}")
-                                continue
-
-                            # Get raw feature coordinates
-                            raw_fx0 = int(feature_box[1] * width / 1000)
-                            raw_fy0 = int(feature_box[0] * height / 1000)
-                            raw_fx1 = int(feature_box[3] * width / 1000)
-                            raw_fy1 = int(feature_box[2] * height / 1000)
-
-                            # Draw feature center point with 'x' marker
-                            f_center_x = (raw_fx0 + raw_fx1) // 2
-                            f_center_y = (raw_fy0 + raw_fy1) // 2
-                            marker_size = 5
-                            draw.line([f_center_x - marker_size, f_center_y - marker_size,
-                                     f_center_x + marker_size, f_center_y + marker_size],
-                                    fill=base_color_rgb, width=2)
-                            draw.line([f_center_x - marker_size, f_center_y + marker_size,
-                                     f_center_x + marker_size, f_center_y - marker_size],
-                                    fill=base_color_rgb, width=2)
-
-                            # Draw connecting line from feature center to head center
-                            head_center_x = (x0 + x1) // 2
-                            head_center_y = (y0 + y1) // 2
-                            # Use a slightly lighter version for the connecting line
-                            faded_color_rgb = tuple(min(255, int(c * 1.3)) for c in base_color_rgb)
-                            draw.line([f_center_x, f_center_y, head_center_x, head_center_y],
-                                    fill=faded_color_rgb, width=1, joint="curve")
-
-                            # Draw feature box with dashed outline
-                            box_points = [
-                                [(raw_fx0, raw_fy0), (raw_fx1, raw_fy0)],  # top
-                                [(raw_fx1, raw_fy0), (raw_fx1, raw_fy1)],  # right
-                                [(raw_fx1, raw_fy1), (raw_fx0, raw_fy1)],  # bottom
-                                [(raw_fx0, raw_fy1), (raw_fx0, raw_fy0)]   # left
-                            ]
-
-                            # Draw dashed box
-                            dash_pattern = [4, 4]
-                            for start, end in box_points:
-                                x0_seg, y0_seg = start
-                                x1_seg, y1_seg = end
-                                dx = x1_seg - x0_seg
-                                dy = y1_seg - y0_seg
-                                distance = int(((dx ** 2) + (dy ** 2)) ** 0.5)
-
-                                if distance > 0:
-                                    num_segments = distance // sum(dash_pattern)
-                                    for k_seg in range(num_segments + 1):
-                                         segment_start = k_seg * sum(dash_pattern)
-                                         if segment_start >= distance:
-                                             break
-
-                                         segment_end = min(segment_start + dash_pattern[0], distance)
-                                         t1 = segment_start / distance
-                                         t2 = segment_end / distance
-
-                                         line_start = (int(x0_seg + t1 * dx), int(y0_seg + t1 * dy))
-                                         line_end = (int(x0_seg + t2 * dx), int(y0_seg + t2 * dy))
-
-                                         # Adjust line width based on confidence
-                                         line_width = max(1, int(confidence * 3))
-                                         draw.line([line_start, line_end], fill=base_color_rgb, width=line_width)
-
-                            # Draw feature label with confidence and status
-                            feature_label_parts = [
-                                f"{feature.get('label', 'unknown')} ({feature.get('confidence', 0):.2f})", # Use .get() for label
-                                f"Status: {feature.get('status', 'full')}",
-                                f"[{feature_box[0]:.0f}, {feature_box[1]:.0f}, {feature_box[2]:.0f}, {feature_box[3]:.0f}]"
-                            ]
-
-                            for k_label, text in enumerate(feature_label_parts):
-                                text_pos = (raw_fx0, raw_fy0-25-(k_label*15)) # Adjusted offset
-
-                                # Ensure image is RGBA for drawing transparent background
-                                img_rgba_copy = img.copy().convert('RGBA') # Draw on a copy
-                                draw_rgba = ImageDraw.Draw(img_rgba_copy)
-
-                                text_bbox = draw_rgba.textbbox(text_pos, text)
-
-                                # Draw background with padding
-                                bg_box = [
-                                    text_bbox[0]-3, text_bbox[1]-2,
-                                    text_bbox[2]+3, text_bbox[3]+2
-                                ]
-
-                                # Draw semi-transparent dark background
-                                draw_rgba.rectangle(bg_box, fill=(0, 0, 0, 180)) # Use RGBA for transparency
-
-                                # Draw white outline for better contrast
-                                draw_rgba.rectangle(bg_box, outline=(255, 255, 255), width=1)
-
-                                # Draw text in feature color (using base RGB color)
-                                draw_rgba.text(text_pos, text, fill=base_color_rgb)
-
-                                # Composite back onto original image
-                                img = Image.alpha_composite(img, img_rgba_copy)
-                                draw = ImageDraw.Draw(img) # Update draw object for original image
-                        else:
-                            logging.warning(f"Skipping invalid feature item: {feature}")
-
-            # Save in RGB mode
+            # Save the labeled version
             if img.mode == 'RGBA':
                 img = img.convert('RGB')
-            img.save(output_path, format='JPEG', quality=95)
-
+            img.save(output_path, quality=95)
+            logging.info(f"VisionAgentAnimal: Saved labeled version to {output_path}")
         except Exception as e:
-            logging.exception(f"Error saving labeled version: {e}")
+            logging.exception(f"VisionAgentAnimal: Error saving labeled version: {e}")
 
 
     def _save_masked_version(self, img: Image.Image, analysis_results: Dict[str, Any], output_path: str) -> None: # Changed parameter name
@@ -598,11 +485,12 @@ class VisionAgentAnimal:
                 json_str = json_str[7:]
             if json_str.endswith("```"):
                 json_str = json_str[:-3]
-
             return json.loads(json_str)
+        except json.JSONDecodeError as e:
+            logging.error(f"VisionAgentAnimal: Failed to parse Gemini JSON: {e}. Response: {response_text}")
+            return None
         except Exception as e:
-            logging.error(f"Failed to parse Gemini response: {e}")
-            logging.debug(f"Raw response text: {response_text}")
+            logging.error(f"VisionAgentAnimal: Error parsing Gemini response: {e}")
             return None
 
     def _parse_grok_response(self, response_text: str) -> Optional[Dict]:
@@ -614,146 +502,134 @@ class VisionAgentAnimal:
                 json_str = json_str[7:]
             if json_str.endswith("```"):
                 json_str = json_str[:-3]
-
             return json.loads(json_str)
+        except json.JSONDecodeError as e:
+            logging.error(f"VisionAgentAnimal: Failed to parse Grok JSON: {e}. Response: {response_text}")
+            return None
         except Exception as e:
-            logging.error(f"Failed to parse Grok response: {e}")
-            logging.debug(f"Raw response text: {response_text}")
+            logging.error(f"VisionAgentAnimal: Error parsing Grok response: {e}")
             return None
 
-
     def _create_segmentation_masks(self, detections: List[Dict[str, Any]], image_size: Tuple[int, int]) -> List[SegmentationMask]:
-        """Convert detection results to segmentation masks."""
-        width, height = image_size
+        """Create SegmentationMask objects from detections."""
         masks = []
-
+        width, height = image_size
         for det in detections:
-            try:
-                box = det["box_2d"]
-                y0 = int(box[0] * height / 1000)
-                x0 = int(box[1] * width / 1000)
-                y1 = int(box[2] * height / 1000)
-                x1 = int(box[3] * width / 1000)
-
-                # Ensure coordinates are within bounds
-                y0 = max(0, min(y0, height - 1))
-                x0 = max(0, min(x0, width - 1))
-                y1 = max(0, min(y1, height))
-                x1 = max(0, min(x1, width))
-
-                if y1 > y0 and x1 > x0:
-                    # Create binary mask
-                    mask = np.zeros((height, width), dtype=np.uint8)
-                    mask[y0:y1, x0:x1] = 255
+            if "mask" in det and "box_2d" in det:
+                try:
+                    box = det["box_2d"]
+                    y0, x0, y1, x1 = int(box[0] * height / 1000), int(box[1] * width / 1000), \
+                                     int(box[2] * height / 1000), int(box[3] * width / 1000)
+                    
+                    # Assuming mask is base64 encoded PNG or similar format
+                    mask_data = base64.b64decode(det["mask"])
+                    mask_img = Image.open(io.BytesIO(mask_data)).convert('L') # Convert to grayscale
+                    mask_np = np.array(mask_img)
+                    
+                    # Resize mask to match image dimensions if needed
+                    if mask_np.shape != (height, width):
+                         mask_img_resized = mask_img.resize((width, height), Image.Resampling.NEAREST)
+                         mask_np = np.array(mask_img_resized)
 
                     masks.append(SegmentationMask(
                         y0=y0, x0=x0, y1=y1, x1=x1,
-                        mask=mask,
-                        label=det["label"]
+                        mask=mask_np,
+                        label=det.get("label", "unknown")
                     ))
-            except Exception as e:
-                logging.warning(f"Failed to create mask for {det.get('label', 'unknown')}: {e}")
-                continue
-
+                except Exception as e:
+                    logging.error(f"VisionAgentAnimal: Error processing mask for {det.get('label')}: {e}")
         return masks
 
     def _overlay_mask(self, img: Image.Image, mask: np.ndarray, color: str, alpha: float = 0.5) -> Image.Image:
-        """Overlay a segmentation mask on an image."""
+        """Overlay a single mask onto the image."""
         try:
-            overlay = Image.new('RGBA', img.size, (0, 0, 0, 0))
-            draw = ImageDraw.Draw(overlay)
-
-            # Convert color name to RGB
-            rgb = ImageColor.getrgb(color)
-
-            # Ensure mask is 2D and correct size
-            if mask.shape != img.size[::-1]:  # PIL uses (width, height), numpy uses (height, width)
-                mask = np.resize(mask, img.size[::-1])
-
-            # Convert to uint8 if needed
-            if mask.dtype != np.uint8:
-                mask = (mask > 0).astype(np.uint8) * 255
-
-            # Create mask overlay
-            mask_img = Image.fromarray(mask, mode='L')  # Use 'L' mode for grayscale
-            draw.bitmap((0, 0), mask_img, fill=(*rgb, int(255 * alpha)))
-
-            # Composite images
-            return Image.alpha_composite(img.convert('RGBA'), overlay)
-
-        except Exception as e:
-            logging.warning(f"Failed to overlay mask: {e}", exc_info=True)
+            if img.mode != 'RGBA':
+                img = img.convert('RGBA')
+            
+            color_rgb = ImageColor.getrgb(color)
+            mask_color = Image.new('RGBA', img.size, color_rgb + (0,)) # Transparent base
+            
+            # Create a boolean mask where the mask array is > threshold (e.g., 128)
+            bool_mask = mask > 128 
+            
+            # Create an RGBA image from the boolean mask
+            mask_rgba = np.zeros((*mask.shape, 4), dtype=np.uint8)
+            mask_rgba[bool_mask] = color_rgb + (int(alpha * 255),) # Set color and alpha where mask is true
+            
+            mask_image = Image.fromarray(mask_rgba, 'RGBA')
+            
+            # Composite the mask onto the image
+            img = Image.alpha_composite(img, mask_image)
             return img
+        except Exception as e:
+            logging.exception(f"VisionAgentAnimal: Error overlaying mask: {e}")
+            return img # Return original image on error
 
 
     def copy_and_crop_image(self, input_path: str, output_path: str, analysis_results: Dict[str, Any]) -> Optional[str]:
-        """Intelligently crop image based on object detection results."""
+        """Copy the image and crop it based on analysis results."""
         try:
             img = Image.open(input_path)
             width, height = img.size
-            target_ratio = 16/9
-            current_ratio = width/height
+            target_aspect_ratio = 16 / 9
+            target_width = int(min(width, height * target_aspect_ratio))
+            target_height = int(target_width / target_aspect_ratio)
 
-            # Calculate target dimensions
-            if current_ratio > target_ratio:
-                new_width = int(height * target_ratio)
-                new_height = height
-            else:
-                new_width = width
-                new_height = int(width / target_ratio)
+            # Ensure target dimensions are valid
+            if target_width <= 0 or target_height <= 0:
+                 logging.error(f"Invalid target dimensions calculated: {target_width}x{target_height}")
+                 return None
 
-            # Find optimal crop window
+            # Find the optimal crop box
             best_crop = self._find_optimal_crop(
-                img_size=(width, height),
-                target_size=(new_width, new_height),
-                objects=analysis_results.get("objects", []),
-                masks=analysis_results.get("segmentation_masks", [])
+                img.size,
+                (target_width, target_height),
+                analysis_results.get("objects", []),
+                analysis_results.get("segmentation_masks", []) # Pass masks to cropping logic
             )
 
-            # Apply crop
             if best_crop:
-                cropped = img.crop(best_crop)
-                if cropped.mode == 'RGBA':
-                    cropped = cropped.convert('RGB')
-                cropped.save(output_path, format='JPEG', quality=95)
+                cropped_img = img.crop(best_crop)
+                # Ensure output directory exists
+                os.makedirs(os.path.dirname(output_path), exist_ok=True)
+                cropped_img.save(output_path, quality=95)
+                logging.info(f"VisionAgentAnimal: Saved cropped image to {output_path}")
                 return output_path
             else:
-                # Fallback to center crop
-                left = (width - new_width) // 2
-                top = (height - new_height) // 2
-                img_rgb = img.convert('RGB') if img.mode == 'RGBA' else img
-                img_rgb.crop((left, top, left + new_width, top + new_height)).save(output_path)
+                logging.warning("VisionAgentAnimal: Could not determine optimal crop. Saving original.")
+                # Fallback: save a copy of the original if cropping fails
+                img.save(output_path, quality=95)
                 return output_path
 
         except Exception as e:
-            logging.exception(f"VisionAgentAbstract: Error cropping image: {e}")
+            logging.exception(f"VisionAgentAnimal: Error cropping image: {e}")
             return None
 
-
     def _find_optimal_crop(self, img_size: Tuple[int, int], target_size: Tuple[int, int],
-                          objects: List[Dict[str, Any]], masks: List[SegmentationMask]) -> Optional[Tuple[int, int, int, int]]:
-        """Find optimal crop position based on detected objects and masks."""
+                           objects: List[Dict[str, Any]], masks: List[SegmentationMask]) -> Optional[Tuple[int, int, int, int]]:
+        """Find the best 16:9 crop box."""
         width, height = img_size
         target_width, target_height = target_size
-        best_score = float('-inf')
         best_crop = None
+        best_score = -1
 
-        # Convert normalized coordinates to pixels and combine with masks
+        # Convert object boxes to pixel coordinates
         pixel_objects = []
         for obj in objects:
-            box = obj["box_2d"]
-            pixel_box = [
-                int(box[1] * width / 1000),   # x0
-                int(box[0] * height / 1000),  # y0
-                int(box[3] * width / 1000),   # x1
-                int(box[2] * height / 1000)   # y1
-            ]
-            pixel_objects.append({
-                "box": pixel_box,
-                "importance": obj.get("importance", 0.5),
-                "type": obj.get("type", "object"),
-                "label": obj.get("label", "") # Include label for cropping logic
-            })
+            if "box_2d" in obj:
+                box = obj["box_2d"]
+                pixel_box = [
+                    int(box[1] * width / 1000),   # x0
+                    int(box[0] * height / 1000),  # y0
+                    int(box[3] * width / 1000),   # x1
+                    int(box[2] * height / 1000)   # y1
+                ]
+                pixel_objects.append({
+                    "box": pixel_box,
+                    "importance": obj.get("importance", 0.5),
+                    "type": obj.get("type", "object"),
+                    "label": obj.get("label", "") # Include label for cropping logic
+                })
 
         # Add mask regions as objects
         for mask in masks:
@@ -779,71 +655,14 @@ class VisionAgentAnimal:
                     best_crop = (x, y, x + target_width, y + target_height)
 
         # Abstract-specific cropping refinement (Roadmap Step 7)
-        if best_crop:
-             best_crop = self._refine_abstract_crop(best_crop, img_size, target_size, pixel_objects)
+        # if best_crop:
+        #      best_crop = self._refine_abstract_crop(best_crop, img_size, target_size, pixel_objects)
 
 
         return best_crop
 
 
-    def _refine_abstract_crop(self, current_crop: Tuple[int, int, int, int], img_size: Tuple[int, int], target_size: Tuple[int, int], objects: List[Dict[str, Any]]) -> Tuple[int, int, int, int]:
-        """
-        Refines the crop for abstract paintings based on the weighted centroid of shapes.
-        (Roadmap Step 7 - Abstract specific)
-        """
-        img_width, img_height = img_size
-        target_width, target_height = target_size
-        crop_left, crop_top, crop_right, crop_bottom = current_crop
-
-        # Calculate weighted centroid of identified shapes/important objects
-        total_weight = 0
-        weighted_centroid_x = 0
-        weighted_centroid_y = 0
-
-        for obj in objects:
-             box = obj["box"]
-             obj_left, obj_top, obj_right, obj_bottom = box
-             importance = obj.get("importance", 0.5)
-
-             # Use center of the object box
-             center_x = (obj_left + obj_right) // 2
-             center_y = (obj_top + obj_bottom) // 2
-
-             weight = importance # Use importance as weight
-             weighted_centroid_x += center_x * weight
-             weighted_centroid_y += center_y * weight
-             total_weight += weight
-
-        if total_weight > 0:
-             centroid_x = weighted_centroid_x // total_weight
-             centroid_y = weighted_centroid_y // total_weight
-             logging.info(f"VisionAgentAbstract: Calculated weighted centroid: ({centroid_x}, {centroid_y})")
-
-             # Adjust crop boundary to be as centered on the centroid as possible
-             # while maintaining 16:9 ratio and maximizing size.
-             # This is a simplified centering; a full implementation would
-             # consider maximizing coverage of important objects near the centroid.
-
-             # Calculate potential new top-left corner based on desired center
-             new_left = max(0, centroid_x - target_width // 2)
-             new_top = max(0, centroid_y - target_height // 2)
-
-             # Adjust to stay within image bounds
-             if new_left + target_width > img_width:
-                  new_left = img_width - target_width
-             if new_top + target_height > img_height:
-                  new_top = img_height - target_height
-
-             # Ensure left/top are not negative after adjustments
-             new_left = max(0, new_left)
-             new_top = max(0, new_top)
-
-             adjusted_crop = (new_left, new_top, new_left + target_width, new_top + target_height)
-             logging.info(f"VisionAgentAbstract: Refined crop to center on centroid: {adjusted_crop}")
-             return adjusted_crop
-
-        # If no objects or zero total weight, return the original crop
-        return current_crop
+    # _refine_abstract_crop removed: not needed for animal art
 
 
     def _calculate_box_overlap(self, box1: List[float], box2: List[float]) -> float:
@@ -877,66 +696,60 @@ class VisionAgentAnimal:
         """Calculate score for a potential crop based on included objects."""
         left, top, right, bottom = crop_box
         score = 0.0
+        crop_area = (right - left) * (bottom - top)
 
         primary_subject_lower = primary_subject.lower() if primary_subject else None
         secondary_subject_lowers = [sub.lower() for sub in secondary_subjects]
 
         for obj in objects:
-            box = obj["box"]
-            obj_left, obj_top, obj_right, obj_bottom = box
-            importance = float(obj.get("importance", 0.5)) # Use get with default
-            obj_type = obj.get("type", "object") # Use get with default
-            obj_label_lower = obj.get("label", "").lower() # Use get with default
+            obj_box = obj["box"]
+            obj_left, obj_top, obj_right, obj_bottom = obj_box
+            obj_area = (obj_right - obj_left) * (obj_bottom - obj_top)
 
-            # Check if the object is the primary or a secondary subject
-            is_primary_subject = primary_subject_lower and primary_subject_lower in obj_label_lower
-            is_secondary_subject = any(sub_lower in obj_label_lower for sub_lower in secondary_subject_lowers)
+            # Calculate intersection area
+            inter_left = max(left, obj_left)
+            inter_top = max(top, obj_top)
+            inter_right = min(right, obj_right)
+            inter_bottom = min(bottom, obj_bottom)
 
+            intersection = max(0, inter_right - inter_left) * max(0, inter_bottom - inter_top)
 
-            # Calculate intersection
-            intersect_left = max(left, obj_left)
-            intersect_right = min(right, obj_right)
-            intersect_top = max(top, obj_top)
-            intersect_bottom = min(bottom, obj_bottom)
+            if intersection > 0:
+                overlap_ratio = intersection / obj_area if obj_area > 0 else 0
+                importance = obj.get("importance", 0.5)
+                obj_label_lower = obj.get("label", "").lower()
 
-            if intersect_right > intersect_left and intersect_bottom > intersect_top:
-                # Calculate coverage
-                obj_area = (obj_right - obj_left) * (obj_bottom - obj_top)
-                intersect_area = (intersect_right - intersect_left) * (intersect_bottom - intersect_top)
-                coverage = intersect_area / obj_area
+                # Base score based on importance and overlap
+                obj_score = importance * overlap_ratio
 
-                # Adjust importance based on object type and context (Abstract specific)
-                # These multipliers should ideally be defined in the VisionAgentAbstract class
-                # For now, using simplified logic based on type/subject status
-                adjusted_importance = importance
+                # Boost score for primary subject
+                if primary_subject_lower and primary_subject_lower in obj_label_lower:
+                    obj_score *= 3.0 # Strong boost for primary subject
 
-                if obj_type.lower() in ['shape', 'color_field', 'texture', 'compositional_element']:
-                     adjusted_importance *= 2.5 # Boost for abstract elements
-                elif obj_type.lower() in ['figure', 'object']:
-                     adjusted_importance *= 1.0 # Less emphasis on recognizable forms
+                # Boost score for secondary subjects
+                elif any(sub_lower in obj_label_lower for sub_lower in secondary_subject_lowers):
+                    obj_score *= 1.5 # Moderate boost for secondary subjects
 
-                if is_primary_subject:
-                     adjusted_importance *= 2.0 # Additional boost for primary subject
-                elif is_secondary_subject:
-                     adjusted_importance *= 1.3 # Additional boost for secondary subjects
+                # Boost score for faces/heads
+                if obj.get("type") in ["animal_face", "face", "head"]:
+                    obj_score *= 2.0
 
+                # Penalize crops that cut off important objects significantly
+                if overlap_ratio < 0.8 and importance > 0.6:
+                    obj_score *= 0.5 # Penalize partial inclusion of important objects
 
-                # Penalize partial coverage of important objects
-                if coverage < 1.0:
-                    if is_primary_subject or is_secondary_subject or obj_type.lower() in ['shape', 'color_field', 'texture', 'compositional_element']:
-                        adjusted_importance *= coverage * 0.6  # Moderate penalty for important elements
-                    else:
-                        adjusted_importance *= coverage * 0.9  # Less severe penalty for others
+                score += obj_score
 
-                score += adjusted_importance
+        # Normalize score by crop area (optional, can help balance density vs coverage)
+        # score /= (crop_area ** 0.5) if crop_area > 0 else 1
 
         return score
 
-    # Placeholder for handoff to UpscaleAgent
+
     def handoff_to_upscale(self, cropped_image_path: str, upscale_queue: Queue):
-        """Places the cropped image path onto the upscale queue."""
-        logging.info(f"VisionAgentAbstract: Handoff {os.path.basename(cropped_image_path)} to UpscaleAgent queue.")
-        upscale_queue.put(cropped_image_path)
-
-
-# Note: This class is intended to be instantiated and used by the DocentAgent or a Vision Router.
+        """Send the cropped image path to the upscale agent's queue."""
+        try:
+            upscale_queue.put(cropped_image_path)
+            logging.info(f"VisionAgentAnimal: Handed off {os.path.basename(cropped_image_path)} to upscale queue.")
+        except Exception as e:
+            logging.exception(f"VisionAgentAnimal: Error handing off to upscale queue: {e}")

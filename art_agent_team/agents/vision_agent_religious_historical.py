@@ -7,7 +7,7 @@ import io
 from PIL import Image, ImageDraw, ImageFont, ImageColor
 import google.generativeai as genai
 from google.generativeai.types import GenerationConfig
-from groq import Groq # Import Grok client
+from openai import OpenAI
 from dataclasses import dataclass
 from typing import List, Tuple, Optional, Dict, Any
 import math # Needed for centroid calculation
@@ -50,18 +50,14 @@ class VisionAgentReligiousHistorical:
             self.gemini_pro = None
 
         # Initialize Grok Vision model
-        grok_api_key = self.config.get('grok_api_key', os.environ.get('GROK_API_KEY'))
-        if grok_api_key:
-            try:
-                self.grok_client = Groq(api_key=grok_api_key)
-                self.grok_vision_model = "grok-2-vision-1212" # As requested
-                logging.info(f"VisionAgentReligiousHistorical: Grok Vision client initialized with model {self.grok_vision_model}.")
-            except Exception as e:
-                logging.error(f"VisionAgentReligiousHistorical: Failed to initialize Grok Vision client: {e}")
-                self.grok_client = None
-        else:
+        self.grok_api_key = self.config.get('grok_api_key')
+        if not self.grok_api_key:
             logging.error("VisionAgentReligiousHistorical: No Grok API key found.")
-            self.grok_client = None
+        self.grok_vision_model = "grok-2-vision-latest"
+        self.grok_client = OpenAI(
+            api_key=self.grok_api_key,
+            base_url="https://api.x.ai/v1",
+        ) if self.grok_api_key else None
 
         # Colors for visualization
         self.colors = ['red', 'green', 'blue', 'yellow', 'orange', 'pink', 'purple',
@@ -168,20 +164,37 @@ class VisionAgentReligiousHistorical:
             # 2. Grok Vision Analysis
             grok_objects = []
             if self.grok_client:
-                 try:
+                try:
+                    base64_image = base64.b64encode(content).decode("utf-8")
+                    messages = [
+                        {
+                            "role": "user",
+                            "content": [
+                                {
+                                    "type": "image_url",
+                                    "image_url": {
+                                        "url": f"data:image/jpeg;base64,{base64_image}",
+                                        "detail": "high",
+                                    },
+                                },
+                                {
+                                    "type": "text",
+                                    "text": religious_historical_prompt,
+                                },
+                            ],
+                        },
+                    ]
                     grok_response = self.grok_client.chat.completions.create(
-                        messages=[
-                            {"role": "user", "content": [{"type": "text", "text": religious_historical_prompt}, {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64.b64encode(content).decode('utf-8')}"}}]}
-                        ],
                         model=self.grok_vision_model,
+                        messages=messages,
                         temperature=0.4,
-                        max_tokens=2048
+                        max_tokens=2048,
                     )
                     grok_results = self._parse_grok_response(grok_response.choices[0].message.content)
                     if grok_results and "objects" in grok_results:
                         grok_objects = grok_results["objects"]
                         logging.info(f"VisionAgentReligiousHistorical: Grok Vision identified {len(grok_objects)} objects.")
-                 except Exception as e:
+                except Exception as e:
                     logging.error(f"VisionAgentReligiousHistorical: Error in Grok Vision analysis: {e}")
 
 
