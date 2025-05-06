@@ -1,0 +1,1827 @@
+ERROR:art_agent_team.docent_agent:JSONDecodeError: Expecting value: line 1 column 1 (char 0). Attempting to recover by fixing common issues.
+ERROR:art_agent_team.docent_agent:Failed to parse fixed JSON: Expecting value: line 1 column 1 (char 0)
+ERROR:art_agent_team.docent_agent:Parsed workflow_dict is not a dict: None
+ERROR:art_agent_team.docent_agent:Workflow dict is None or invalid. Falling back to default workflow (Research -> Vision).
+ERROR:root:[ResearchAgent 85571][LLM Call gemini-2.5-pro-exp-03-25] Google GenerativeAI API call failed: Could not create `Blob`, expected `Blob`, `dict` or an `Image` type(`PIL.Image.Image` or `IPython.display.Image`).
+Got a: <class 'vertexai.generative_models._generative_models.Part'>
+Value: inline_data {
+  mime_type: "image/jpeg"
+  data: "\377\330\377\341\027\360Exif\000\
+}
+Traceback (most recent call last):
+  File "/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/agents/research_agent.py", line 793, in _make_llm_call
+    response = genai_model.generate_content(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/generative_models.py", line 305, in generate_content
+    request = self._prepare_request(
+              ^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/generative_models.py", line 154, in _prepare_request
+    contents = content_types.to_contents(contents)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 333, in to_contents
+    contents = [to_content(contents)]
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 296, in to_content
+    return protos.Content(parts=[to_part(part) for part in content])
+                                 ^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 264, in to_part
+    return protos.Part(inline_data=to_blob(part))
+                                   ^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 210, in to_blob
+    raise TypeError(
+TypeError: Could not create `Blob`, expected `Blob`, `dict` or an `Image` type(`PIL.Image.Image` or `IPython.display.Image`).
+Got a: <class 'vertexai.generative_models._generative_models.Part'>
+Value: inline_data {
+  mime_type: "image/jpeg"
+  data: "\377\330\377\341\027\360Exif\000\
+}
+
+WARNING:root:[ResearchAgent 85571][Retry Call gemini-2.5-pro-exp-03-25] Attempt 1 failed: Google GenerativeAI API call failed for gemini-2.5-pro-exp-03-25: Could not create `Blob`, expected `Blob`, `dict` or an `Image` type(`PIL.Image.Image` or `IPython.display.Image`).
+Got a: <class 'vertexai.generative_models._generative_models.Part'>
+Value: inline_data {
+  mime_type: "image/jpeg"
+  data: "\377\330\377\341\027\360Exif\000\000II*\
+}
+. Retrying...
+ERROR:art_agent_team.docent_agent:JSONDecodeError: Expecting value: line 1 column 1 (char 0). Attempting to recover by fixing common issues.
+ERROR:art_agent_team.docent_agent:Failed to parse fixed JSON: Expecting value: line 1 column 1 (char 0)
+ERROR:art_agent_team.docent_agent:Parsed workflow_dict is not a dict: None
+ERROR:art_agent_team.docent_agent:Workflow dict is None or invalid. Falling back to default workflow (Research -> Vision).
+ERROR:root:[ResearchAgent 92661][LLM Call gemini-2.5-pro-exp-03-25] Google GenerativeAI API call failed: Could not create `Blob`, expected `Blob`, `dict` or an `Image` type(`PIL.Image.Image` or `IPython.display.Image`).
+Got a: <class 'vertexai.generative_models._generative_models.Part'>
+Value: inline_data {
+  mime_type: "image/jpeg"
+  data: "\377\330\377\341\027\360Exif\000\000II*\000\
+}
+Traceback (most recent call last):
+  File "/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/agents/research_agent.py", line 793, in _make_llm_call
+    response = genai_model.generate_content(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/generative_models.py", line 305, in generate_content
+    request = self._prepare_request(
+              ^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/generative_models.py", line 154, in _prepare_request
+    contents = content_types.to_contents(contents)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 333, in to_contents
+    contents = [to_content(contents)]
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 296, in to_content
+    return protos.Content(parts=[to_part(part) for part in content])
+                                 ^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 264, in to_part
+    return protos.Part(inline_data=to_blob(part))
+                                   ^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 210, in to_blob
+    raise TypeError(
+TypeError: Could not create `Blob`, expected `Blob`, `dict` or an `Image` type(`PIL.Image.Image` or `IPython.display.Image`).
+Got a: <class 'vertexai.generative_models._generative_models.Part'>
+Value: inline_data {
+  mime_type: "image/jpeg"
+  data: "\377\330\377\341\027\360Exif\
+  }
+
+WARNING:root:[ResearchAgent 92661][Retry Call gemini-2.5-pro-exp-03-25] Attempt 1 failed: Google GenerativeAI API call failed for gemini-2.5-pro-exp-03-25: Could not create `Blob`, expected `Blob`, `dict` or an `Image` type(`PIL.Image.Image` or `IPython.display.Image`).
+Got a: <class 'vertexai.generative_models._generative_models.Part'>
+Value: inline_data {
+  mime_type: "image/jpeg"
+  data: "\377\330\377\341\027\360Exif\000\
+}
+. Retrying...
+ERROR:art_agent_team.docent_agent:JSONDecodeError: Expecting value: line 1 column 1 (char 0). Attempting to recover by fixing common issues.
+ERROR:art_agent_team.docent_agent:Failed to parse fixed JSON: Expecting value: line 1 column 1 (char 0)
+ERROR:art_agent_team.docent_agent:Parsed workflow_dict is not a dict: None
+ERROR:art_agent_team.docent_agent:Workflow dict is None or invalid. Falling back to default workflow (Research -> Vision).
+ERROR:root:[ResearchAgent 93385][LLM Call gemini-2.5-pro-exp-03-25] Google GenerativeAI API call failed. Error Type: TypeError. Message: Could not create `Blob`, expected `Blob`, `dict` or an `Image` type(`PIL.Image.Image` or `IPython.display.Image`).
+Got a: <class 'vertexai.generative_models._generative_models.Part'>
+Value: inline_data {
+  mime_type: "image/jpeg"
+  data: "\377\330\377\341\027\360Exif\000\000II*\00
+  }
+Traceback (most recent call last):
+  File "/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/agents/research_agent.py", line 808, in _make_llm_call
+    response = genai_model.generate_content(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/generative_models.py", line 305, in generate_content
+    request = self._prepare_request(
+              ^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/generative_models.py", line 154, in _prepare_request
+    contents = content_types.to_contents(contents)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 333, in to_contents
+    contents = [to_content(contents)]
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 296, in to_content
+    return protos.Content(parts=[to_part(part) for part in content])
+                                 ^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 264, in to_part
+    return protos.Part(inline_data=to_blob(part))
+                                   ^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 210, in to_blob
+    raise TypeError(
+TypeError: Could not create `Blob`, expected `Blob`, `dict` or an `Image` type(`PIL.Image.Image` or `IPython.display.Image`).
+Got a: <class 'vertexai.generative_models._generative_models.Part'>
+Value: inline_data {
+  mime_type: "image/jpeg"
+  data: "\377\330\377\341\027\360Exif\000\000II*\000
+}
+
+WARNING:root:[ResearchAgent 93385][Retry Call gemini-2.5-pro-exp-03-25] Attempt 1 failed: Google GenerativeAI API call failed for gemini-2.5-pro-exp-03-25: Could not create `Blob`, expected `Blob`, `dict` or an `Image` type(`PIL.Image.Image` or `IPython.display.Image`).
+Got a: <class 'vertexai.generative_models._generative_models.Part'>
+Value: inline_data {
+  mime_type: "image/jpeg"
+  data: "\377\330\377\341\027\360Exif\000\000II*\000\
+}
+. Retrying...
+ERROR:root:[ResearchAgent 93385][LLM Call gemini-2.5-pro-exp-03-25] Google GenerativeAI API call failed. Error Type: TypeError. Message: Could not create `Blob`, expected `Blob`, `dict` or an `Image` type(`PIL.Image.Image` or `IPython.display.Image`).
+Got a: <class 'vertexai.generative_models._generative_models.Part'>
+Value: inline_data {
+  mime_type: "image/jpeg"
+  data: "\377\330\377\341\027\360Exif\000\000II*\000\010\
+}
+Traceback (most recent call last):
+  File "/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/agents/research_agent.py", line 808, in _make_llm_call
+    response = genai_model.generate_content(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/generative_models.py", line 305, in generate_content
+    request = self._prepare_request(
+              ^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/generative_models.py", line 154, in _prepare_request
+    contents = content_types.to_contents(contents)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 333, in to_contents
+    contents = [to_content(contents)]
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 296, in to_content
+    return protos.Content(parts=[to_part(part) for part in content])
+                                 ^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 264, in to_part
+    return protos.Part(inline_data=to_blob(part))
+                                   ^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 210, in to_blob
+    raise TypeError(
+TypeError: Could not create `Blob`, expected `Blob`, `dict` or an `Image` type(`PIL.Image.Image` or `IPython.display.Image`).
+Got a: <class 'vertexai.generative_models._generative_models.Part'>
+Value: inline_data {
+  mime_type: "image/jpeg"
+  data: "\377\330\377\341\027\360Exif\000\00
+}
+
+ERROR:art_agent_team.docent_agent:JSONDecodeError: Expecting value: line 1 column 1 (char 0). Attempting to recover by fixing common issues.
+ERROR:art_agent_team.docent_agent:Failed to parse fixed JSON: Expecting value: line 1 column 1 (char 0)
+ERROR:art_agent_team.docent_agent:Parsed workflow_dict is not a dict: None
+ERROR:art_agent_team.docent_agent:Workflow dict is None or invalid. Falling back to default workflow (Research -> Vision).
+ERROR:root:[ResearchAgent 56064][LLM Call gemini-2.5-pro-exp-03-25] Unexpected error during LLM call processing for image 'Jesus Ministered to by Angels, James Tissot 1886.jpg': name 'agent_id' is not defined.
+Traceback (most recent call last):
+  File "/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/agents/research_agent.py", line 808, in _make_llm_call
+    response = genai_model.generate_content(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/generative_models.py", line 305, in generate_content
+    request = self._prepare_request(
+              ^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/generative_models.py", line 154, in _prepare_request
+    contents = content_types.to_contents(contents)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 333, in to_contents
+    contents = [to_content(contents)]
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 296, in to_content
+    return protos.Content(parts=[to_part(part) for part in content])
+                                 ^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 264, in to_part
+    return protos.Part(inline_data=to_blob(part))
+                                   ^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 210, in to_blob
+    raise TypeError(
+TypeError: Could not create `Blob`, expected `Blob`, `dict` or an `Image` type(`PIL.Image.Image` or `IPython.display.Image`).
+Got a: <class 'vertexai.generative_models._generative_models.Part'>
+Value: inline_data {
+  mime_type: "image/jpeg"
+  data: "\377\330\377\341\027\360Exif\000\000II*\000\010\000\000\000\014\000\000\001\004\000\001\000\000\000%\017\000\000\001\001\004\000\001\000\000\000T\n\000\000\002\001\003\000\003\000\000\000\236\000\000\000\006\001\003\000\001\000\000\000\002\000\000\000\022\001\003\000\001\000\000\000\001\000\000\000\025\001\003\000\001\000\000\000\003\000\000\
+}
+
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/agents/research_agent.py", line 857, in _make_llm_call
+    logging.error(f"{tag} Google GenerativeAI API call failed. Error Type: {type(e).__name__}. Message: {sanitized_msg} [Agent: {agent_id}, Model: {model_name}]")
+                                                                                                                                 ^^^^^^^^
+NameError: name 'agent_id' is not defined. Did you mean: 'self.agent_id'?
+WARNING:root:[ResearchAgent 56064][Retry Call gemini-2.5-pro-exp-03-25] Attempt 1 failed: Unexpected error in _make_llm_call for gemini-2.5-pro-exp-03-25 processing image 'Jesus Ministered to by Angels, James Tissot 1886.jpg': name 'agent_id' is not defined. Retrying...
+ERROR:root:[ResearchAgent 56064][LLM Call gemini-2.5-pro-exp-03-25] Unexpected error during LLM call processing for image 'Jesus Ministered to by Angels, James Tissot 1886.jpg': name 'agent_id' is not defined.
+Traceback (most recent call last):
+  File "/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/agents/research_agent.py", line 808, in _make_llm_call
+    response = genai_model.generate_content(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/generative_models.py", line 305, in generate_content
+    request = self._prepare_request(
+              ^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/generative_models.py", line 154, in _prepare_request
+    contents = content_types.to_contents(contents)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 333, in to_contents
+    contents = [to_content(contents)]
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 296, in to_content
+    return protos.Content(parts=[to_part(part) for part in content])
+                                 ^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 264, in to_part
+    return protos.Part(inline_data=to_blob(part))
+                                   ^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 210, in to_blob
+    raise TypeError(
+TypeError: Could not create `Blob`, expected `Blob`, `dict` or an `Image` type(`PIL.Image.Image` or `IPython.display.Image`).
+Got a: <class 'vertexai.generative_models._generative_models.Part'>
+Value: inline_data {
+  mime_type: "image/jpeg"
+  data: "\377\330\377\341\027\360Exif\000\000II*\000\010\000\000\000\014\000\000\001\004\000\001\000\000\000%\017\000\000\001\001\004\000\001\000\000\000T\n\000\000\002\001\003\000\003\000\000\000\236\000\000\000\006\001\003\000\001\000\000\000\002\000\000\000\022\001\003\000\001\000\000\000\001\000\000\000\025\001\003\000\001\000\000\000\003\
+}
+
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/agents/research_agent.py", line 857, in _make_llm_call
+    logging.error(f"{tag} Google GenerativeAI API call failed. Error Type: {type(e).__name__}. Message: {sanitized_msg} [Agent: {agent_id}, Model: {model_name}]")
+                                                                                                                                 ^^^^^^^^
+NameError: name 'agent_id' is not defined. Did you mean: 'self.agent_id'?
+WARNING:root:[ResearchAgent 56064][Retry Call gemini-2.5-pro-exp-03-25] Attempt 2 failed: Unexpected error in _make_llm_call for gemini-2.5-pro-exp-03-25 processing image 'Jesus Ministered to by Angels, James Tissot 1886.jpg': name 'agent_id' is not defined. Retrying...
+ERROR:art_agent_team.docent_agent:JSONDecodeError: Expecting value: line 1 column 1 (char 0). Attempting to recover by fixing common issues.
+ERROR:art_agent_team.docent_agent:Failed to parse fixed JSON: Expecting value: line 1 column 1 (char 0)
+ERROR:art_agent_team.docent_agent:Parsed workflow_dict is not a dict: None
+ERROR:art_agent_team.docent_agent:Workflow dict is None or invalid. Falling back to default workflow (Research -> Vision).
+ERROR:root:[ResearchAgent 81669][LLM Call gemini-2.5-pro-exp-03-25] Unexpected error during LLM call processing for image 'Jesus Ministered to by Angels, James Tissot 1886.jpg': name 'agent_id' is not defined.
+Traceback (most recent call last):
+  File "/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/agents/research_agent.py", line 808, in _make_llm_call
+    response = genai_model.generate_content(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/generative_models.py", line 305, in generate_content
+    request = self._prepare_request(
+              ^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/generative_models.py", line 154, in _prepare_request
+    contents = content_types.to_contents(contents)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 333, in to_contents
+    contents = [to_content(contents)]
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 296, in to_content
+    return protos.Content(parts=[to_part(part) for part in content])
+                                 ^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 264, in to_part
+    return protos.Part(inline_data=to_blob(part))
+                                   ^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 210, in to_blob
+    raise TypeError(
+TypeError: Could not create `Blob`, expected `Blob`, `dict` or an `Image` type(`PIL.Image.Image` or `IPython.display.Image`).
+Got a: <class 'vertexai.generative_models._generative_models.Part'>
+Value: inline_data {
+  mime_type: "image/jpeg"
+  data: "\377\330\377\341\027\360Exif\000\000II*\000\010\000\000\000\014\000\000\001\004\000\001\000\000\000%\017\000\000\001\001\004\000\001\000\000\000T\n\000\000\002\001\003\000\003\000\000\000\236\000\000\000\006\001\003\000\001\000\000\000\002\000\000\000\022\001\003\000\001\000\000\000\001\000\000\000\025\001\003\000\001\000\000\
+}
+
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/agents/research_agent.py", line 857, in _make_llm_call
+    logging.error(f"{tag} Google GenerativeAI API call failed. Error Type: {type(e).__name__}. Message: {sanitized_msg} [Agent: {agent_id}, Model: {model_name}]")
+                                                                                                                                 ^^^^^^^^
+NameError: name 'agent_id' is not defined. Did you mean: 'self.agent_id'?
+WARNING:root:[ResearchAgent 81669][Retry Call gemini-2.5-pro-exp-03-25] Attempt 1 failed: Unexpected error in _make_llm_call for gemini-2.5-pro-exp-03-25 processing image 'Jesus Ministered to by Angels, James Tissot 1886.jpg': name 'agent_id' is not defined. Retrying...
+ERROR:root:[ResearchAgent 81669][LLM Call gemini-2.5-pro-exp-03-25] Unexpected error during LLM call processing for image 'Jesus Ministered to by Angels, James Tissot 1886.jpg': name 'agent_id' is not defined.
+Traceback (most recent call last):
+  File "/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/agents/research_agent.py", line 808, in _make_llm_call
+    response = genai_model.generate_content(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/generative_models.py", line 305, in generate_content
+    request = self._prepare_request(
+              ^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/generative_models.py", line 154, in _prepare_request
+    contents = content_types.to_contents(contents)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 333, in to_contents
+    contents = [to_content(contents)]
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 296, in to_content
+    return protos.Content(parts=[to_part(part) for part in content])
+                                 ^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 264, in to_part
+    return protos.Part(inline_data=to_blob(part))
+                                   ^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 210, in to_blob
+    raise TypeError(
+TypeError: Could not create `Blob`, expected `Blob`, `dict` or an `Image` type(`PIL.Image.Image` or `IPython.display.Image`).
+Got a: <class 'vertexai.generative_models._generative_models.Part'>
+Value: inline_data {
+  mime_type: "image/jpeg"
+  data: "\377\330\377\341\027\360Exif\000\000II*\000\010\000\000\000\014\000\000\001\004\000\001\000\000\000%\017\000\000\001\001\004\000\001\000\000\000T\n\000\000\002\001\003\000\003\000\000\000\236\000\000\000\006\001\003\000\001\000\000\000\002\000\000\000\022\001\003\000\001\000\000\000\001\000\000\000\025\001\003\000\00
+}
+
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/agents/research_agent.py", line 857, in _make_llm_call
+    logging.error(f"{tag} Google GenerativeAI API call failed. Error Type: {type(e).__name__}. Message: {sanitized_msg} [Agent: {agent_id}, Model: {model_name}]")
+                                                                                                                                 ^^^^^^^^
+NameError: name 'agent_id' is not defined. Did you mean: 'self.agent_id'?
+WARNING:root:[ResearchAgent 81669][Retry Call gemini-2.5-pro-exp-03-25] Attempt 2 failed: Unexpected error in _make_llm_call for gemini-2.5-pro-exp-03-25 processing image 'Jesus Ministered to by Angels, James Tissot 1886.jpg': name 'agent_id' is not defined. Retrying...
+ERROR:root:[ResearchAgent 81669][LLM Call gemini-2.5-pro-exp-03-25] Unexpected error during LLM call processing for image 'Jesus Ministered to by Angels, James Tissot 1886.jpg': name 'agent_id' is not defined.
+Traceback (most recent call last):
+  File "/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/agents/research_agent.py", line 808, in _make_llm_call
+    response = genai_model.generate_content(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/generative_models.py", line 305, in generate_content
+    request = self._prepare_request(
+              ^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/generative_models.py", line 154, in _prepare_request
+    contents = content_types.to_contents(contents)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 333, in to_contents
+    contents = [to_content(contents)]
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 296, in to_content
+    return protos.Content(parts=[to_part(part) for part in content])
+                                 ^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 264, in to_part
+    return protos.Part(inline_data=to_blob(part))
+                                   ^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 210, in to_blob
+    raise TypeError(
+TypeError: Could not create `Blob`, expected `Blob`, `dict` or an `Image` type(`PIL.Image.Image` or `IPython.display.Image`).
+Got a: <class 'vertexai.generative_models._generative_models.Part'>
+Value: inline_data {
+  mime_type: "image/jpeg"
+  data: "\377\330\377\341\027\360Exif\000\000II*\000\010\000\000\000\014\000\000\001\004\000\001\000\000\000%\017\000\000\001\001\004\000\001\000\000\000T\n\000\000\002\001\003\000\003\000\000\000\236\000\000\000\006\001\003\000\001\000\000\000\002\000\000\000\022\001\003\000\001\000\000\000\001\000\000\00
+}
+
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/agents/research_agent.py", line 857, in _make_llm_call
+    logging.error(f"{tag} Google GenerativeAI API call failed. Error Type: {type(e).__name__}. Message: {sanitized_msg} [Agent: {agent_id}, Model: {model_name}]")
+                                                                                                                                 ^^^^^^^^
+NameError: name 'agent_id' is not defined. Did you mean: 'self.agent_id'?
+WARNING:root:[ResearchAgent 81669][Ensure Fields meta-llama/llama-4-scout:free] Correcting invalid type for grounding_used ('['art history knowledge', 'image analysis']', type <class 'list'>). Setting to False.
+WARNING:root:[ResearchAgent 81669][LLM Call opengvlab/internvl3-14b:free] OpenAI-compatible response structure invalid or empty content. Finish Reason: unknown.
+WARNING:root:[ResearchAgent 81669][Retry Call gemini-2.5-pro-exp-03-25] Attempt 3 failed: Unexpected error in _make_llm_call for gemini-2.5-pro-exp-03-25 processing image 'Jesus Ministered to by Angels, James Tissot 1886.jpg': name 'agent_id' is not defined. Retrying...
+WARNING:root:[ResearchAgent 81669][Ensure Fields meta-llama/llama-4-scout:free] Invalid or non-matching date format '1886'. Setting to None.
+WARNING:root:[ResearchAgent 81669][LLM Call opengvlab/internvl3-14b:free] Received empty but successful response.
+ERROR:root:[ResearchAgent 81669][Retry Call gemini-2.5-pro-exp-03-25] Call failed after 3 attempts.
+ERROR:root:[ResearchAgent 81669][LLM Call gemini-2.0-flash-exp] Unexpected error during LLM call processing for image 'Jesus Ministered to by Angels, James Tissot 1886.jpg': name 'agent_id' is not defined.
+Traceback (most recent call last):
+  File "/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/agents/research_agent.py", line 808, in _make_llm_call
+    response = genai_model.generate_content(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/generative_models.py", line 305, in generate_content
+    request = self._prepare_request(
+              ^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/generative_models.py", line 154, in _prepare_request
+    contents = content_types.to_contents(contents)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 333, in to_contents
+    contents = [to_content(contents)]
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 296, in to_content
+    return protos.Content(parts=[to_part(part) for part in content])
+                                 ^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 264, in to_part
+    return protos.Part(inline_data=to_blob(part))
+                                   ^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 210, in to_blob
+    raise TypeError(
+TypeError: Could not create `Blob`, expected `Blob`, `dict` or an `Image` type(`PIL.Image.Image` or `IPython.display.Image`).
+Got a: <class 'vertexai.generative_models._generative_models.Part'>
+Value: inline_data {
+  mime_type: "image/jpeg"
+  data: "\377\330\377\341\027\360Exif\000\000II*\000\010\000\000\000\014\000\000\001\004\000\001\000\000\000%\017\000\000\001\001\004\000\001\000\000\000T\n\000\000\002\001\003\000\003\000\000\000\236\000\000\000\006\001\003\000\001\000\000\000\002\000\000\000\022\001\003\000\001\000\000\000\001\0
+}
+
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/agents/research_agent.py", line 857, in _make_llm_call
+    logging.error(f"{tag} Google GenerativeAI API call failed. Error Type: {type(e).__name__}. Message: {sanitized_msg} [Agent: {agent_id}, Model: {model_name}]")
+                                                                                                                                 ^^^^^^^^
+NameError: name 'agent_id' is not defined. Did you mean: 'self.agent_id'?
+WARNING:root:[ResearchAgent 81669][LLM Call opengvlab/internvl3-14b:free] Received empty but successful response for image 'Jesus Ministered to by Angels, James Tissot 1886.jpg'.
+WARNING:root:[ResearchAgent 81669][Parallel Search] Call failed for gemini-2.5-pro-exp-03-25 after retries: Unexpected error in _make_llm_call for gemini-2.5-pro-exp-03-25 processing image 'Jesus Ministered to by Angels, James Tissot 1886.jpg': name 'agent_id' is not defined
+WARNING:root:[ResearchAgent 81669][Retry Call gemini-2.0-flash-exp] Attempt 1 failed: Unexpected error in _make_llm_call for gemini-2.0-flash-exp processing image 'Jesus Ministered to by Angels, James Tissot 1886.jpg': name 'agent_id' is not defined. Retrying...
+WARNING:root:[ResearchAgent 81669][Retry Call opengvlab/internvl3-14b:free] Attempt 1 failed: Empty response from opengvlab/internvl3-14b:free for image 'Jesus Ministered to by Angels, James Tissot 1886.jpg'. Retrying...
+ERROR:root:[ResearchAgent 81669][LLM Call gemini-2.0-flash-exp] Unexpected error during LLM call processing for image 'Jesus Ministered to by Angels, James Tissot 1886.jpg': name 'agent_id' is not defined.
+Traceback (most recent call last):
+  File "/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/agents/research_agent.py", line 808, in _make_llm_call
+    response = genai_model.generate_content(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/generative_models.py", line 305, in generate_content
+    request = self._prepare_request(
+              ^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/generative_models.py", line 154, in _prepare_request
+    contents = content_types.to_contents(contents)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 333, in to_contents
+    contents = [to_content(contents)]
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 296, in to_content
+    return protos.Content(parts=[to_part(part) for part in content])
+                                 ^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 264, in to_part
+    return protos.Part(inline_data=to_blob(part))
+                                   ^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 210, in to_blob
+    raise TypeError(
+TypeError: Could not create `Blob`, expected `Blob`, `dict` or an `Image` type(`PIL.Image.Image` or `IPython.display.Image`).
+Got a: <class 'vertexai.generative_models._generative_models.Part'>
+Value: inline_data {
+  mime_type: "image/jpeg"
+  data: "\377\330\377\341\027\360Exif\000\000II*\000\010\000\000\000\014\000\000\001\004\000\001\000\000\000%\017\000\000\001\001\004\000\001\000\000\000T\n\000\000\002\001\003\000\003\000\000\000\236\000\000\000\006\001\003\000\001\000\000\000\002\000\000\000\022\001\003\000\001\000\000\000\001\000\000\000\025\001\003\000\001\000\000\000\003\000\000\000\032\001\005\000\001\000\000\000\244\000\000\000\033\001\005\000\001\0
+}
+
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/agents/research_agent.py", line 857, in _make_llm_call
+    logging.error(f"{tag} Google GenerativeAI API call failed. Error Type: {type(e).__name__}. Message: {sanitized_msg} [Agent: {agent_id}, Model: {model_name}]")
+                                                                                                                                 ^^^^^^^^
+NameError: name 'agent_id' is not defined. Did you mean: 'self.agent_id'?
+WARNING:root:[ResearchAgent 81669][Retry Call gemini-2.0-flash-exp] Attempt 2 failed: Unexpected error in _make_llm_call for gemini-2.0-flash-exp processing image 'Jesus Ministered to by Angels, James Tissot 1886.jpg': name 'agent_id' is not defined. Retrying...
+ERROR:root:[ResearchAgent 81669][LLM Call gemini-2.0-flash-exp] Unexpected error during LLM call processing for image 'Jesus Ministered to by Angels, James Tissot 1886.jpg': name 'agent_id' is not defined.
+Traceback (most recent call last):
+  File "/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/agents/research_agent.py", line 808, in _make_llm_call
+    response = genai_model.generate_content(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/generative_models.py", line 305, in generate_content
+    request = self._prepare_request(
+              ^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/generative_models.py", line 154, in _prepare_request
+    contents = content_types.to_contents(contents)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 333, in to_contents
+    contents = [to_content(contents)]
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 296, in to_content
+    return protos.Content(parts=[to_part(part) for part in content])
+                                 ^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 264, in to_part
+    return protos.Part(inline_data=to_blob(part))
+                                   ^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 210, in to_blob
+    raise TypeError(
+TypeError: Could not create `Blob`, expected `Blob`, `dict` or an `Image` type(`PIL.Image.Image` or `IPython.display.Image`).
+Got a: <class 'vertexai.generative_models._generative_models.Part'>
+Value: inline_data {
+  mime_type: "image/jpeg"
+  data: "\377\330\377\341\027\360Exif\000\000II*\000\010\000\000\000\014\000\000\001\004\000\001\000\000\000%\017\000\000\001\001\004\000\001\000\000\000T\n\000\000\002\001\003\000\003\000\000\000\236\000\000\000\006\001\003\000\001\000\000\000\002\000\000\000\022\001\003\000\001\000\000\000\001\000\000\000\025\001\003\000\001\000\000\000\003\000\000\000\032\001\005\000\001\000\000\000\244\000\00
+}
+
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/agents/research_agent.py", line 857, in _make_llm_call
+    logging.error(f"{tag} Google GenerativeAI API call failed. Error Type: {type(e).__name__}. Message: {sanitized_msg} [Agent: {agent_id}, Model: {model_name}]")
+                                                                                                                                 ^^^^^^^^
+NameError: name 'agent_id' is not defined. Did you mean: 'self.agent_id'?
+WARNING:root:[ResearchAgent 81669][Ensure Fields grok-2-vision-1212] Correcting invalid type for grounding_used ('['web search grounding', 'internal knowledge']', type <class 'list'>). Setting to False.
+WARNING:root:[ResearchAgent 81669][Ensure Fields qwen/qwen2.5-vl-72b-instruct:free] Correcting invalid type for grounding_used ('The analysis is based on the visual content of the image and the provided filename tokens. The date '1886' is validated against the Symbolism movement's time range (1886–1900), which it falls within.', type <class 'str'>). Setting to False.
+WARNING:root:[ResearchAgent 81669][Retry Call gemini-2.0-flash-exp] Attempt 3 failed: Unexpected error in _make_llm_call for gemini-2.0-flash-exp processing image 'Jesus Ministered to by Angels, James Tissot 1886.jpg': name 'agent_id' is not defined. Retrying...
+ERROR:root:[ResearchAgent 81669][Retry Call gemini-2.0-flash-exp] Call failed after 3 attempts.
+ERROR:art_agent_team.docent_agent:JSONDecodeError: Expecting value: line 1 column 1 (char 0). Attempting to recover by fixing common issues.
+ERROR:art_agent_team.docent_agent:Failed to parse fixed JSON: Expecting value: line 1 column 1 (char 0)
+ERROR:art_agent_team.docent_agent:Parsed workflow_dict is not a dict: None
+ERROR:art_agent_team.docent_agent:Workflow dict is None or invalid. Falling back to default workflow (Research -> Vision).
+ERROR:root:[ResearchAgent 39007][LLM Call gemini-2.5-pro-exp-03-25] Unexpected error during LLM call processing for image 'Jesus Ministered to by Angels, James Tissot 1886.jpg': name 'agent_id' is not defined.
+Traceback (most recent call last):
+  File "/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/agents/research_agent.py", line 808, in _make_llm_call
+    response = genai_model.generate_content(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/generative_models.py", line 305, in generate_content
+    request = self._prepare_request(
+              ^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/generative_models.py", line 154, in _prepare_request
+    contents = content_types.to_contents(contents)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 333, in to_contents
+    contents = [to_content(contents)]
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 296, in to_content
+    return protos.Content(parts=[to_part(part) for part in content])
+                                 ^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 264, in to_part
+    return protos.Part(inline_data=to_blob(part))
+                                   ^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 210, in to_blob
+    raise TypeError(
+TypeError: Could not create `Blob`, expected `Blob`, `dict` or an `Image` type(`PIL.Image.Image` or `IPython.display.Image`).
+Got a: <class 'vertexai.generative_models._generative_models.Part'>
+Value: inline_data {
+  mime_type: "image/jpeg"
+  data: "\377\330\377\341\027\360Exif\000\000II*\000\010\000\000\000\014\000\000\001\004\000\001\000\000\000%\017\000\000\001\001\004\000\001\000\
+}
+
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/agents/research_agent.py", line 857, in _make_llm_call
+    logging.error(f"{tag} Google GenerativeAI API call failed. Error Type: {type(e).__name__}. Message: {sanitized_msg} [Agent: {agent_id}, Model: {model_name}]")
+                                                                                                                                 ^^^^^^^^
+NameError: name 'agent_id' is not defined. Did you mean: 'self.agent_id'?
+WARNING:root:[ResearchAgent 39007][Retry Call gemini-2.5-pro-exp-03-25] Attempt 1 failed: Unexpected error in _make_llm_call for gemini-2.5-pro-exp-03-25 processing image 'Jesus Ministered to by Angels, James Tissot 1886.jpg': name 'agent_id' is not defined. Retrying...
+ERROR:root:[ResearchAgent 39007][LLM Call gemini-2.5-pro-exp-03-25] Unexpected error during LLM call processing for image 'Jesus Ministered to by Angels, James Tissot 1886.jpg': name 'agent_id' is not defined.
+Traceback (most recent call last):
+  File "/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/agents/research_agent.py", line 808, in _make_llm_call
+    response = genai_model.generate_content(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/generative_models.py", line 305, in generate_content
+    request = self._prepare_request(
+              ^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/generative_models.py", line 154, in _prepare_request
+    contents = content_types.to_contents(contents)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 333, in to_contents
+    contents = [to_content(contents)]
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 296, in to_content
+    return protos.Content(parts=[to_part(part) for part in content])
+                                 ^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 264, in to_part
+    return protos.Part(inline_data=to_blob(part))
+                                   ^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 210, in to_blob
+    raise TypeError(
+TypeError: Could not create `Blob`, expected `Blob`, `dict` or an `Image` type(`PIL.Image.Image` or `IPython.display.Image`).
+Got a: <class 'vertexai.generative_models._generative_models.Part'>
+Value: inline_data {
+  mime_type: "image/jpeg"
+  data: "\377\330\377\341\027\360Exif\000\000II*\000\010\000\000\000\014\000\000\001\004\000\001\000\000\000%\017\000\000\001\001\004\000\0
+}
+
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/agents/research_agent.py", line 857, in _make_llm_call
+    logging.error(f"{tag} Google GenerativeAI API call failed. Error Type: {type(e).__name__}. Message: {sanitized_msg} [Agent: {agent_id}, Model: {model_name}]")
+                                                                                                                                 ^^^^^^^^
+NameError: name 'agent_id' is not defined. Did you mean: 'self.agent_id'?
+WARNING:root:[ResearchAgent 39007][Retry Call gemini-2.5-pro-exp-03-25] Attempt 2 failed: Unexpected error in _make_llm_call for gemini-2.5-pro-exp-03-25 processing image 'Jesus Ministered to by Angels, James Tissot 1886.jpg': name 'agent_id' is not defined. Retrying...
+ERROR:art_agent_team.docent_agent:JSONDecodeError: Expecting value: line 1 column 1 (char 0). Attempting to recover by fixing common issues.
+ERROR:art_agent_team.docent_agent:Failed to parse fixed JSON: Expecting value: line 1 column 1 (char 0)
+ERROR:art_agent_team.docent_agent:Parsed workflow_dict is not a dict: None
+ERROR:art_agent_team.docent_agent:Workflow dict is None or invalid. Falling back to default workflow (Research -> Vision).
+ERROR:root:[ResearchAgent 26657][LLM Call gemini-2.5-pro-exp-03-25] Unexpected error during LLM call processing for image 'Jesus Ministered to by Angels, James Tissot 1886.jpg': name 'agent_id' is not defined.
+Traceback (most recent call last):
+  File "/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/agents/research_agent.py", line 808, in _make_llm_call
+    response = genai_model.generate_content(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/generative_models.py", line 305, in generate_content
+    request = self._prepare_request(
+              ^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/generative_models.py", line 154, in _prepare_request
+    contents = content_types.to_contents(contents)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 333, in to_contents
+    contents = [to_content(contents)]
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 296, in to_content
+    return protos.Content(parts=[to_part(part) for part in content])
+                                 ^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 264, in to_part
+    return protos.Part(inline_data=to_blob(part))
+                                   ^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 210, in to_blob
+    raise TypeError(
+TypeError: Could not create `Blob`, expected `Blob`, `dict` or an `Image` type(`PIL.Image.Image` or `IPython.display.Image`).
+Got a: <class 'vertexai.generative_models._generative_models.Part'>
+Value: inline_data {
+  mime_type: "image/jpeg"
+  data: "\377\330\377\341\027\360Exif\000\000II*\000\010\000\000\000\014\000\000\001\004\000\001\000\000\000%\017\000\000\001\001\004\000\001\000\000\000T\n\000\000\002\001\003\000\003\000
+}
+
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/agents/research_agent.py", line 858, in _make_llm_call
+    logging.error(f"{tag} Google GenerativeAI API call failed. Error Type: {type(e).__name__}. Message: {sanitized_msg} [Agent: {agent_id}, Model: {model_name}]")
+                                                                                                                                 ^^^^^^^^
+NameError: name 'agent_id' is not defined. Did you mean: 'self.agent_id'?
+WARNING:root:[ResearchAgent 26657][Retry Call gemini-2.5-pro-exp-03-25] Attempt 1 failed: Unexpected error in _make_llm_call for gemini-2.5-pro-exp-03-25 processing image 'Jesus Ministered to by Angels, James Tissot 1886.jpg': name 'agent_id' is not defined. Retrying...
+ERROR:root:[ResearchAgent 26657][LLM Call gemini-2.5-pro-exp-03-25] Unexpected error during LLM call processing for image 'Jesus Ministered to by Angels, James Tissot 1886.jpg': name 'agent_id' is not defined.
+Traceback (most recent call last):
+  File "/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/agents/research_agent.py", line 808, in _make_llm_call
+    response = genai_model.generate_content(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/generative_models.py", line 305, in generate_content
+    request = self._prepare_request(
+              ^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/generative_models.py", line 154, in _prepare_request
+    contents = content_types.to_contents(contents)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 333, in to_contents
+    contents = [to_content(contents)]
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 296, in to_content
+    return protos.Content(parts=[to_part(part) for part in content])
+                                 ^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 264, in to_part
+    return protos.Part(inline_data=to_blob(part))
+                                   ^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 210, in to_blob
+    raise TypeError(
+TypeError: Could not create `Blob`, expected `Blob`, `dict` or an `Image` type(`PIL.Image.Image` or `IPython.display.Image`).
+Got a: <class 'vertexai.generative_models._generative_models.Part'>
+Value: inline_data {
+  mime_type: "image/jpeg"
+  data: "\377\330\377\341\027\360Exif\000\000II*\000\010\000\000\000\014\000\000\001\004\000\001\000\000\000%\017\000\000\001\001\004\000\001\000\000\000T\n\000\000\002\001\003\000\003\000\000\000\236\000\000\000\006\0
+}
+
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/agents/research_agent.py", line 858, in _make_llm_call
+    logging.error(f"{tag} Google GenerativeAI API call failed. Error Type: {type(e).__name__}. Message: {sanitized_msg} [Agent: {agent_id}, Model: {model_name}]")
+                                                                                                                                 ^^^^^^^^
+NameError: name 'agent_id' is not defined. Did you mean: 'self.agent_id'?
+WARNING:root:[ResearchAgent 26657][Retry Call gemini-2.5-pro-exp-03-25] Attempt 2 failed: Unexpected error in _make_llm_call for gemini-2.5-pro-exp-03-25 processing image 'Jesus Ministered to by Angels, James Tissot 1886.jpg': name 'agent_id' is not defined. Retrying...
+WARNING:root:[ResearchAgent 26657][LLM Call opengvlab/internvl3-14b:free] OpenAI-compatible response structure invalid or empty content. Finish Reason: unknown.
+WARNING:root:[ResearchAgent 26657][LLM Call opengvlab/internvl3-14b:free] Received empty but successful response.
+WARNING:root:[ResearchAgent 26657][LLM Call opengvlab/internvl3-14b:free] Received empty but successful response for image 'Jesus Ministered to by Angels, James Tissot 1886.jpg'.
+WARNING:root:[ResearchAgent 26657][Retry Call opengvlab/internvl3-14b:free] Attempt 1 failed: Empty response from opengvlab/internvl3-14b:free for image 'Jesus Ministered to by Angels, James Tissot 1886.jpg'. Retrying...
+ERROR:root:[ResearchAgent 26657][LLM Call gemini-2.5-pro-exp-03-25] Unexpected error during LLM call processing for image 'Jesus Ministered to by Angels, James Tissot 1886.jpg': name 'agent_id' is not defined.
+Traceback (most recent call last):
+  File "/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/agents/research_agent.py", line 808, in _make_llm_call
+    response = genai_model.generate_content(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/generative_models.py", line 305, in generate_content
+    request = self._prepare_request(
+              ^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/generative_models.py", line 154, in _prepare_request
+    contents = content_types.to_contents(contents)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 333, in to_contents
+    contents = [to_content(contents)]
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 296, in to_content
+    return protos.Content(parts=[to_part(part) for part in content])
+                                 ^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 264, in to_part
+    return protos.Part(inline_data=to_blob(part))
+                                   ^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 210, in to_blob
+    raise TypeError(
+TypeError: Could not create `Blob`, expected `Blob`, `dict` or an `Image` type(`PIL.Image.Image` or `IPython.display.Image`).
+Got a: <class 'vertexai.generative_models._generative_models.Part'>
+Value: inline_data {
+  mime_type: "image/jpeg"
+  data: "\377\330\377\341\027\360Exif\000\000II*\000\010\000\000\000\014\000\000\001\004\000\001\000\000\000%\017\000\000\001\001\004\000\001\000\000\000T\n\000\000\002\001\003\000\003\000\000\000\236\000\000\000\006\001\003\000\001\000\000\000\0
+}
+
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/agents/research_agent.py", line 858, in _make_llm_call
+    logging.error(f"{tag} Google GenerativeAI API call failed. Error Type: {type(e).__name__}. Message: {sanitized_msg} [Agent: {agent_id}, Model: {model_name}]")
+                                                                                                                                 ^^^^^^^^
+NameError: name 'agent_id' is not defined. Did you mean: 'self.agent_id'?
+ERROR:root:[ResearchAgent 26657][LLM Call gemini-2.0-flash-exp] Unexpected error during LLM call processing for image 'Jesus Ministered to by Angels, James Tissot 1886.jpg': name 'agent_id' is not defined.
+Traceback (most recent call last):
+  File "/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/agents/research_agent.py", line 808, in _make_llm_call
+    response = genai_model.generate_content(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/generative_models.py", line 305, in generate_content
+    request = self._prepare_request(
+              ^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/generative_models.py", line 154, in _prepare_request
+    contents = content_types.to_contents(contents)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 333, in to_contents
+    contents = [to_content(contents)]
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 296, in to_content
+    return protos.Content(parts=[to_part(part) for part in content])
+                                 ^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 264, in to_part
+    return protos.Part(inline_data=to_blob(part))
+                                   ^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 210, in to_blob
+    raise TypeError(
+TypeError: Could not create `Blob`, expected `Blob`, `dict` or an `Image` type(`PIL.Image.Image` or `IPython.display.Image`).
+Got a: <class 'vertexai.generative_models._generative_models.Part'>
+Value: inline_data {
+  mime_type: "image/jpeg"
+  data: "\377\330\377\341\027\360Exif\000\000II*\000\010\000\000\000\014\000\000\001\004\000\001\000\000\000%\017\000\000\001\001\004\000\001\000\000\000T\n\000\000\002\001\003\000\003\000\000\000\236\000\000\000\006\001\003\000\001\000\000\000\002\000\000\000\022\001\003\000\0
+}
+
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/agents/research_agent.py", line 858, in _make_llm_call
+    logging.error(f"{tag} Google GenerativeAI API call failed. Error Type: {type(e).__name__}. Message: {sanitized_msg} [Agent: {agent_id}, Model: {model_name}]")
+                                                                                                                                 ^^^^^^^^
+NameError: name 'agent_id' is not defined. Did you mean: 'self.agent_id'?
+WARNING:root:[ResearchAgent 26657][Retry Call gemini-2.5-pro-exp-03-25] Attempt 3 failed: Unexpected error in _make_llm_call for gemini-2.5-pro-exp-03-25 processing image 'Jesus Ministered to by Angels, James Tissot 1886.jpg': name 'agent_id' is not defined. Retrying...
+WARNING:root:[ResearchAgent 26657][Retry Call gemini-2.0-flash-exp] Attempt 1 failed: Unexpected error in _make_llm_call for gemini-2.0-flash-exp processing image 'Jesus Ministered to by Angels, James Tissot 1886.jpg': name 'agent_id' is not defined. Retrying...
+ERROR:root:[ResearchAgent 26657][Retry Call gemini-2.5-pro-exp-03-25] Call failed after 3 attempts.
+WARNING:root:[ResearchAgent 26657][Parallel Search] Call failed for gemini-2.5-pro-exp-03-25 after retries: Unexpected error in _make_llm_call for gemini-2.5-pro-exp-03-25 processing image 'Jesus Ministered to by Angels, James Tissot 1886.jpg': name 'agent_id' is not defined
+ERROR:root:[ResearchAgent 26657][LLM Call gemini-2.0-flash-exp] Unexpected error during LLM call processing for image 'Jesus Ministered to by Angels, James Tissot 1886.jpg': name 'agent_id' is not defined.
+Traceback (most recent call last):
+  File "/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/agents/research_agent.py", line 808, in _make_llm_call
+    response = genai_model.generate_content(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/generative_models.py", line 305, in generate_content
+    request = self._prepare_request(
+              ^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/generative_models.py", line 154, in _prepare_request
+    contents = content_types.to_contents(contents)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 333, in to_contents
+    contents = [to_content(contents)]
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 296, in to_content
+    return protos.Content(parts=[to_part(part) for part in content])
+                                 ^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 264, in to_part
+    return protos.Part(inline_data=to_blob(part))
+                                   ^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 210, in to_blob
+    raise TypeError(
+TypeError: Could not create `Blob`, expected `Blob`, `dict` or an `Image` type(`PIL.Image.Image` or `IPython.display.Image`).
+Got a: <class 'vertexai.generative_models._generative_models.Part'>
+Value: inline_data {
+  mime_type: "image/jpeg"
+  data: "\377\330\377\341\027\360Exif\000\000II*\000\010\000\000\000\014\000\000\001\004\000\001\000\000\000%\017\000\000\001\001\004\000\001\000\000\000T\n\000\000\002\001\003\000\003\000\000\000\236\000\000\000\006\001\003\000\001\000\000\000\002\000\000\000\022\001\003\000\001\000\000\000\001\000\
+}
+
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/agents/research_agent.py", line 858, in _make_llm_call
+    logging.error(f"{tag} Google GenerativeAI API call failed. Error Type: {type(e).__name__}. Message: {sanitized_msg} [Agent: {agent_id}, Model: {model_name}]")
+                                                                                                                                 ^^^^^^^^
+NameError: name 'agent_id' is not defined. Did you mean: 'self.agent_id'?
+WARNING:root:[ResearchAgent 26657][Retry Call gemini-2.0-flash-exp] Attempt 2 failed: Unexpected error in _make_llm_call for gemini-2.0-flash-exp processing image 'Jesus Ministered to by Angels, James Tissot 1886.jpg': name 'agent_id' is not defined. Retrying...
+WARNING:root:[ResearchAgent 26657][Ensure Fields qwen/qwen2.5-vl-72b-instruct:free] Correcting invalid type for grounding_used ('The analysis is based on the provided image and filename tokens, focusing on the visual elements and textual information.', type <class 'str'>). Setting to False.
+ERROR:root:[ResearchAgent 26657][LLM Call gemini-2.0-flash-exp] Unexpected error during LLM call processing for image 'Jesus Ministered to by Angels, James Tissot 1886.jpg': name 'agent_id' is not defined.
+Traceback (most recent call last):
+  File "/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/agents/research_agent.py", line 808, in _make_llm_call
+    response = genai_model.generate_content(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/generative_models.py", line 305, in generate_content
+    request = self._prepare_request(
+              ^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/generative_models.py", line 154, in _prepare_request
+    contents = content_types.to_contents(contents)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 333, in to_contents
+    contents = [to_content(contents)]
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 296, in to_content
+    return protos.Content(parts=[to_part(part) for part in content])
+                                 ^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 264, in to_part
+    return protos.Part(inline_data=to_blob(part))
+                                   ^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 210, in to_blob
+    raise TypeError(
+TypeError: Could not create `Blob`, expected `Blob`, `dict` or an `Image` type(`PIL.Image.Image` or `IPython.display.Image`).
+Got a: <class 'vertexai.generative_models._generative_models.Part'>
+Value: inline_data {
+  mime_type: "image/jpeg"
+  data: "\377\330\377\341\027\360Exif\000\000II*\000\010\000\000\000\014\000\000\001\004\000\001\000\000\000%\017\000\000\001\001\004\000\001\000\000\000T\n\000\000\002\001\003\000\003\000\000\000\236\000\000\000\006\001\003\000\001\000\000\000\002\000\000\000\022\001\003\000\001\000\000\000\001\000\000\000\025\001\003\000\001
+}
+
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/agents/research_agent.py", line 858, in _make_llm_call
+    logging.error(f"{tag} Google GenerativeAI API call failed. Error Type: {type(e).__name__}. Message: {sanitized_msg} [Agent: {agent_id}, Model: {model_name}]")
+                                                                                                                                 ^^^^^^^^
+NameError: name 'agent_id' is not defined. Did you mean: 'self.agent_id'?
+WARNING:root:[ResearchAgent 26657][Ensure Fields grok-2-vision-1212] Correcting invalid type for grounding_used ('['web search', 'internal knowledge']', type <class 'list'>). Setting to False.
+WARNING:root:[ResearchAgent 26657][Retry Call gemini-2.0-flash-exp] Attempt 3 failed: Unexpected error in _make_llm_call for gemini-2.0-flash-exp processing image 'Jesus Ministered to by Angels, James Tissot 1886.jpg': name 'agent_id' is not defined. Retrying...
+ERROR:root:[ResearchAgent 26657][Retry Call gemini-2.0-flash-exp] Call failed after 3 attempts.
+WARNING:root:[ResearchAgent 26657][Parallel Search] Call failed for gemini-2.0-flash-exp after retries: Unexpected error in _make_llm_call for gemini-2.0-flash-exp processing image 'Jesus Ministered to by Angels, James Tissot 1886.jpg': name 'agent_id' is not defined
+WARNING:root:[ResearchAgent 26657][LLM Call opengvlab/internvl3-14b:free] OpenAI-compatible response structure invalid or empty content. Finish Reason: unknown.
+WARNING:root:[ResearchAgent 26657][LLM Call opengvlab/internvl3-14b:free] Received empty but successful response.
+WARNING:root:[ResearchAgent 26657][LLM Call opengvlab/internvl3-14b:free] Received empty but successful response for image 'Jesus Ministered to by Angels, James Tissot 1886.jpg'.
+WARNING:root:[ResearchAgent 26657][Retry Call opengvlab/internvl3-14b:free] Attempt 2 failed: Empty response from opengvlab/internvl3-14b:free for image 'Jesus Ministered to by Angels, James Tissot 1886.jpg'. Retrying...
+WARNING:root:[ResearchAgent 26657][Ensure Fields meta-llama/llama-4-scout:free] Correcting invalid type for grounding_used ('['filename tokens', 'art historical knowledge']', type <class 'list'>). Setting to False.
+WARNING:root:[ResearchAgent 26657][Ensure Fields meta-llama/llama-4-scout:free] Invalid or non-matching date format '1886'. Setting to None.
+WARNING:root:[ResearchAgent 26657][Consolidation] Excluding result from gemini-2.5-pro-exp-03-25 due to error: Unexpected error in _make_llm_call for gemini-2.5-pro-exp-03-25 processing image 'Jesus Ministered to by Angels, James Tissot 1886.jpg': name 'agent_id' is not defined
+WARNING:root:[ResearchAgent 26657][Consolidation] Excluding result from gemini-2.0-flash-exp due to error: Unexpected error in _make_llm_call for gemini-2.0-flash-exp processing image 'Jesus Ministered to by Angels, James Tissot 1886.jpg': name 'agent_id' is not defined
+ERROR:art_agent_team.docent_agent:[Jesus Ministered to by Angels, James Tissot 1886.jpg] Research stage failed unexpectedly: ResearchAgent._make_llm_call_with_retry() missing 1 required positional argument: 'image_path'
+Traceback (most recent call last):
+  File "/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/docent_agent.py", line 341, in start_workflow
+    research_output = research_agent.research_and_process(current_image_path)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/agents/research_agent.py", line 414, in research_and_process
+    return self.unified_research(image_path)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/agents/research_agent.py", line 510, in unified_research
+    consolidated_results = self._consolidate_results(individual_results)
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/agents/research_agent.py", line 1175, in _consolidate_results
+    consolidation_result = self._make_llm_call_with_retry(
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: ResearchAgent._make_llm_call_with_retry() missing 1 required positional argument: 'image_path'
+WARNING:art_agent_team.docent_agent:[Jesus Ministered to by Angels, James Tissot 1886.jpg] No specific VisionAgent for genre 'Default'. Using Default.
+ERROR:art_agent_team.docent_agent:[Jesus Ministered to by Angels, James Tissot 1886.jpg] Default VisionAgent not found. Skipping Vision stage.
+ERROR:art_agent_team.docent_agent:JSONDecodeError: Expecting value: line 1 column 1 (char 0). Attempting to recover by fixing common issues.
+ERROR:art_agent_team.docent_agent:Failed to parse fixed JSON: Expecting value: line 1 column 1 (char 0)
+ERROR:art_agent_team.docent_agent:Parsed workflow_dict is not a dict: None
+ERROR:art_agent_team.docent_agent:Workflow dict is None or invalid. Falling back to default workflow (Research -> Vision).
+ERROR:root:[ResearchAgent 60903][LLM Call gemini-2.5-pro-exp-03-25] Unexpected error during LLM call processing for image 'Jesus Ministered to by Angels, James Tissot 1886.jpg': name 'agent_id' is not defined.
+Traceback (most recent call last):
+  File "/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/agents/research_agent.py", line 808, in _make_llm_call
+    response = genai_model.generate_content(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/generative_models.py", line 305, in generate_content
+    request = self._prepare_request(
+              ^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/generative_models.py", line 154, in _prepare_request
+    contents = content_types.to_contents(contents)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 333, in to_contents
+    contents = [to_content(contents)]
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 296, in to_content
+    return protos.Content(parts=[to_part(part) for part in content])
+                                 ^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 264, in to_part
+    return protos.Part(inline_data=to_blob(part))
+                                   ^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 210, in to_blob
+    raise TypeError(
+TypeError: Could not create `Blob`, expected `Blob`, `dict` or an `Image` type(`PIL.Image.Image` or `IPython.display.Image`).
+Got a: <class 'vertexai.generative_models._generative_models.Part'>
+Value: inline_data {
+  mime_type: "image/jpeg"
+  data: "\377\330\377\341\027\360Exif\000\000II*\000\010\000\000\000\014\000\000\001\004\000\001\000\000\000%\017\000\000\001\001\004\000\001\000\000\000T\n\000\000\002\001\003\000\003\000\000\000\236\000\000\000\006\001\003\000\001\000\000\000\002\000\000\000\022\001\003\000\001\000\000\000\001\000\000\000\025\001\003\000\001\000\000\000\003\000\0
+}
+
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/agents/research_agent.py", line 858, in _make_llm_call
+    logging.error(f"{tag} Google GenerativeAI API call failed. Error Type: {type(e).__name__}. Message: {sanitized_msg} [Agent: {agent_id}, Model: {model_name}]")
+                                                                                                                                 ^^^^^^^^
+NameError: name 'agent_id' is not defined. Did you mean: 'self.agent_id'?
+WARNING:root:[ResearchAgent 60903][Retry Call gemini-2.5-pro-exp-03-25] Attempt 1 failed: Unexpected error in _make_llm_call for gemini-2.5-pro-exp-03-25 processing image 'Jesus Ministered to by Angels, James Tissot 1886.jpg': name 'agent_id' is not defined. Retrying...
+ERROR:root:[ResearchAgent 60903][LLM Call gemini-2.5-pro-exp-03-25] Unexpected error during LLM call processing for image 'Jesus Ministered to by Angels, James Tissot 1886.jpg': name 'agent_id' is not defined.
+Traceback (most recent call last):
+  File "/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/agents/research_agent.py", line 808, in _make_llm_call
+    response = genai_model.generate_content(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/generative_models.py", line 305, in generate_content
+    request = self._prepare_request(
+              ^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/generative_models.py", line 154, in _prepare_request
+    contents = content_types.to_contents(contents)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 333, in to_contents
+    contents = [to_content(contents)]
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 296, in to_content
+    return protos.Content(parts=[to_part(part) for part in content])
+                                 ^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 264, in to_part
+    return protos.Part(inline_data=to_blob(part))
+                                   ^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 210, in to_blob
+    raise TypeError(
+TypeError: Could not create `Blob`, expected `Blob`, `dict` or an `Image` type(`PIL.Image.Image` or `IPython.display.Image`).
+Got a: <class 'vertexai.generative_models._generative_models.Part'>
+Value: inline_data {
+  mime_type: "image/jpeg"
+  data: "\377\330\377\341\027\360Exif\000\000II*\000\010\000\000\000\014\000\000\001\004\000\001\000\000\000%\017\000\000\001\001\004\000\001\000\000\000T\n\000\000\002\001\003\000\003\000\000\000\236\000\000\000\006\001\003\000\001\000\000\000\002\000\000\000\022\001\003\000\001\000\000\000\001\000\000\000\025\001\003\000\001\000\000\000\003\000\000\000\032\001\0
+}
+
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/agents/research_agent.py", line 858, in _make_llm_call
+    logging.error(f"{tag} Google GenerativeAI API call failed. Error Type: {type(e).__name__}. Message: {sanitized_msg} [Agent: {agent_id}, Model: {model_name}]")
+                                                                                                                                 ^^^^^^^^
+NameError: name 'agent_id' is not defined. Did you mean: 'self.agent_id'?
+WARNING:root:[ResearchAgent 60903][Retry Call gemini-2.5-pro-exp-03-25] Attempt 2 failed: Unexpected error in _make_llm_call for gemini-2.5-pro-exp-03-25 processing image 'Jesus Ministered to by Angels, James Tissot 1886.jpg': name 'agent_id' is not defined. Retrying...
+ERROR:root:[ResearchAgent 60903][LLM Call gemini-2.5-pro-exp-03-25] Unexpected error during LLM call processing for image 'Jesus Ministered to by Angels, James Tissot 1886.jpg': name 'agent_id' is not defined.
+Traceback (most recent call last):
+  File "/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/agents/research_agent.py", line 808, in _make_llm_call
+    response = genai_model.generate_content(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/generative_models.py", line 305, in generate_content
+    request = self._prepare_request(
+              ^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/generative_models.py", line 154, in _prepare_request
+    contents = content_types.to_contents(contents)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 333, in to_contents
+    contents = [to_content(contents)]
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 296, in to_content
+    return protos.Content(parts=[to_part(part) for part in content])
+                                 ^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 264, in to_part
+    return protos.Part(inline_data=to_blob(part))
+                                   ^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 210, in to_blob
+    raise TypeError(
+TypeError: Could not create `Blob`, expected `Blob`, `dict` or an `Image` type(`PIL.Image.Image` or `IPython.display.Image`).
+Got a: <class 'vertexai.generative_models._generative_models.Part'>
+Value: inline_data {
+  mime_type: "image/jpeg"
+  data: "\377\330\377\341\027\360Exif\000\000II*\000\010\000\000\000\014\000\000\001\004\000\001\000\000\000%\017\000\000\001\001\004\000\001\000\000\000T\n\000\000\002\001\003\000\003\000\000\000\236\000\000\000\006\001\003\000\001\000\000\000\002\000\000\000\022\001\003\000\001\000\000\000\001\000\000\000\025\001\003\000\001\000\000\000\003\000\000\000\032\001\005\000\001\
+}
+
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/agents/research_agent.py", line 858, in _make_llm_call
+    logging.error(f"{tag} Google GenerativeAI API call failed. Error Type: {type(e).__name__}. Message: {sanitized_msg} [Agent: {agent_id}, Model: {model_name}]")
+                                                                                                                                 ^^^^^^^^
+NameError: name 'agent_id' is not defined. Did you mean: 'self.agent_id'?
+WARNING:root:[ResearchAgent 60903][Retry Call gemini-2.5-pro-exp-03-25] Attempt 3 failed: Unexpected error in _make_llm_call for gemini-2.5-pro-exp-03-25 processing image 'Jesus Ministered to by Angels, James Tissot 1886.jpg': name 'agent_id' is not defined. Retrying...
+ERROR:root:[ResearchAgent 60903][Retry Call gemini-2.5-pro-exp-03-25] Call failed after 3 attempts.
+WARNING:root:[ResearchAgent 60903][Parallel Search] Call failed for gemini-2.5-pro-exp-03-25 after retries: Unexpected error in _make_llm_call for gemini-2.5-pro-exp-03-25 processing image 'Jesus Ministered to by Angels, James Tissot 1886.jpg': name 'agent_id' is not defined
+ERROR:root:[ResearchAgent 60903][LLM Call gemini-2.0-flash-exp] Unexpected error during LLM call processing for image 'Jesus Ministered to by Angels, James Tissot 1886.jpg': name 'agent_id' is not defined.
+Traceback (most recent call last):
+  File "/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/agents/research_agent.py", line 808, in _make_llm_call
+    response = genai_model.generate_content(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/generative_models.py", line 305, in generate_content
+    request = self._prepare_request(
+              ^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/generative_models.py", line 154, in _prepare_request
+    contents = content_types.to_contents(contents)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 333, in to_contents
+    contents = [to_content(contents)]
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 296, in to_content
+    return protos.Content(parts=[to_part(part) for part in content])
+                                 ^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 264, in to_part
+    return protos.Part(inline_data=to_blob(part))
+                                   ^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 210, in to_blob
+    raise TypeError(
+TypeError: Could not create `Blob`, expected `Blob`, `dict` or an `Image` type(`PIL.Image.Image` or `IPython.display.Image`).
+Got a: <class 'vertexai.generative_models._generative_models.Part'>
+Value: inline_data {
+  mime_type: "image/jpeg"
+  data: "\377\330\377\341\027\360Exif\000\000II*\000\010\000\000\000\014\000\000\001\004\000\001\000\000\000%\017\000\000\001\001\004\000\001\000\000\000T\n\000\000\002\001\003\000\003\000\000\000\236\000\000\000\006\001\003\000\001\000\000\000\002\000\000\000\022\001\003\000\001\000\000\000\001\000\000\000\025\001\003\000\001\000\000\000\003\000\000\000\032\001\005\000\001\000\00
+}
+
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/agents/research_agent.py", line 858, in _make_llm_call
+    logging.error(f"{tag} Google GenerativeAI API call failed. Error Type: {type(e).__name__}. Message: {sanitized_msg} [Agent: {agent_id}, Model: {model_name}]")
+                                                                                                                                 ^^^^^^^^
+NameError: name 'agent_id' is not defined. Did you mean: 'self.agent_id'?
+WARNING:root:[ResearchAgent 60903][Retry Call gemini-2.0-flash-exp] Attempt 1 failed: Unexpected error in _make_llm_call for gemini-2.0-flash-exp processing image 'Jesus Ministered to by Angels, James Tissot 1886.jpg': name 'agent_id' is not defined. Retrying...
+WARNING:root:[ResearchAgent 60903][LLM Call opengvlab/internvl3-14b:free] OpenAI-compatible response structure invalid or empty content. Finish Reason: unknown.
+WARNING:root:[ResearchAgent 60903][LLM Call opengvlab/internvl3-14b:free] Received empty but successful response.
+WARNING:root:[ResearchAgent 60903][LLM Call opengvlab/internvl3-14b:free] Received empty but successful response for image 'Jesus Ministered to by Angels, James Tissot 1886.jpg'.
+WARNING:root:[ResearchAgent 60903][Retry Call opengvlab/internvl3-14b:free] Attempt 1 failed: Empty response from opengvlab/internvl3-14b:free for image 'Jesus Ministered to by Angels, James Tissot 1886.jpg'. Retrying...
+ERROR:root:[ResearchAgent 60903][LLM Call gemini-2.0-flash-exp] Unexpected error during LLM call processing for image 'Jesus Ministered to by Angels, James Tissot 1886.jpg': name 'agent_id' is not defined.
+Traceback (most recent call last):
+  File "/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/agents/research_agent.py", line 808, in _make_llm_call
+    response = genai_model.generate_content(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/generative_models.py", line 305, in generate_content
+    request = self._prepare_request(
+              ^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/generative_models.py", line 154, in _prepare_request
+    contents = content_types.to_contents(contents)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 333, in to_contents
+    contents = [to_content(contents)]
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 296, in to_content
+    return protos.Content(parts=[to_part(part) for part in content])
+                                 ^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 264, in to_part
+    return protos.Part(inline_data=to_blob(part))
+                                   ^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 210, in to_blob
+    raise TypeError(
+TypeError: Could not create `Blob`, expected `Blob`, `dict` or an `Image` type(`PIL.Image.Image` or `IPython.display.Image`).
+Got a: <class 'vertexai.generative_models._generative_models.Part'>
+Value: inline_data {
+  mime_type: "image/jpeg"
+  data: "\377\330\377\341\027\360Exif\000\000II*\000\010\000\000\000\014\000\000\001\004\000\001\000\000\000%\017\000\000\001\001\004\000\001\000\000\000T\n\000\000\002\001\003\000\003\000\000\000\236\000\000\000\006\001\003\000\001\000\000\000\002\000\000\000\022\001\003\000\001\000\000\000\001\000\000\000\025\001\003\000\001\000\000\000\003\000\000\000\032\001\005\000\001\000\000\000\2
+}
+
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/agents/research_agent.py", line 858, in _make_llm_call
+    logging.error(f"{tag} Google GenerativeAI API call failed. Error Type: {type(e).__name__}. Message: {sanitized_msg} [Agent: {agent_id}, Model: {model_name}]")
+                                                                                                                                 ^^^^^^^^
+NameError: name 'agent_id' is not defined. Did you mean: 'self.agent_id'?
+WARNING:root:[ResearchAgent 60903][Retry Call gemini-2.0-flash-exp] Attempt 2 failed: Unexpected error in _make_llm_call for gemini-2.0-flash-exp processing image 'Jesus Ministered to by Angels, James Tissot 1886.jpg': name 'agent_id' is not defined. Retrying...
+ERROR:root:[ResearchAgent 60903][LLM Call gemini-2.0-flash-exp] Unexpected error during LLM call processing for image 'Jesus Ministered to by Angels, James Tissot 1886.jpg': name 'agent_id' is not defined.
+Traceback (most recent call last):
+  File "/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/agents/research_agent.py", line 808, in _make_llm_call
+    response = genai_model.generate_content(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/generative_models.py", line 305, in generate_content
+    request = self._prepare_request(
+              ^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/generative_models.py", line 154, in _prepare_request
+    contents = content_types.to_contents(contents)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 333, in to_contents
+    contents = [to_content(contents)]
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 296, in to_content
+    return protos.Content(parts=[to_part(part) for part in content])
+                                 ^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 264, in to_part
+    return protos.Part(inline_data=to_blob(part))
+                                   ^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/google/generativeai/types/content_types.py", line 210, in to_blob
+    raise TypeError(
+TypeError: Could not create `Blob`, expected `Blob`, `dict` or an `Image` type(`PIL.Image.Image` or `IPython.display.Image`).
+Got a: <class 'vertexai.generative_models._generative_models.Part'>
+Value: inline_data {
+  mime_type: "image/jpeg"
+  data: "\377\330\377\341\027\360Exif\000\000II*\000\010\000\000\000\014\000\000\001\004\000\001\000\000\000%\017\000\000\001\001\004\000\001\000\000\000T\n\000\000\002\001\003\000\003\000\000\000\236\000\000\000\006\001\003\000\001\000\000\000\002\000\000\000\022\001\003\000\001\000\000\000\001\000\000\000\025\001\003\000\001\000\000\000\003\000\000\000\032\001\005\000\001\000\000\000\244\00
+}
+
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/agents/research_agent.py", line 858, in _make_llm_call
+    logging.error(f"{tag} Google GenerativeAI API call failed. Error Type: {type(e).__name__}. Message: {sanitized_msg} [Agent: {agent_id}, Model: {model_name}]")
+                                                                                                                                 ^^^^^^^^
+NameError: name 'agent_id' is not defined. Did you mean: 'self.agent_id'?
+WARNING:root:[ResearchAgent 60903][Retry Call gemini-2.0-flash-exp] Attempt 3 failed: Unexpected error in _make_llm_call for gemini-2.0-flash-exp processing image 'Jesus Ministered to by Angels, James Tissot 1886.jpg': name 'agent_id' is not defined. Retrying...
+ERROR:root:[ResearchAgent 60903][Retry Call gemini-2.0-flash-exp] Call failed after 3 attempts.
+WARNING:root:[ResearchAgent 60903][Parallel Search] Call failed for gemini-2.0-flash-exp after retries: Unexpected error in _make_llm_call for gemini-2.0-flash-exp processing image 'Jesus Ministered to by Angels, James Tissot 1886.jpg': name 'agent_id' is not defined
+WARNING:root:[ResearchAgent 60903][Ensure Fields qwen/qwen2.5-vl-72b-instruct:free] Correcting invalid type for grounding_used ('The analysis is based on the visual content of the image and the provided filename tokens. The date '1886' is validated against the Symbolism movement's time range (1886–1900), which it falls within.', type <class 'str'>). Setting to False.
+WARNING:root:[ResearchAgent 60903][Ensure Fields grok-2-vision-1212] Correcting invalid type for grounding_used ('['web search grounding', 'internal knowledge']', type <class 'list'>). Setting to False.
+WARNING:root:[ResearchAgent 60903][LLM Call opengvlab/internvl3-14b:free] OpenAI-compatible response structure invalid or empty content. Finish Reason: unknown.
+WARNING:root:[ResearchAgent 60903][LLM Call opengvlab/internvl3-14b:free] Received empty but successful response.
+WARNING:root:[ResearchAgent 60903][LLM Call opengvlab/internvl3-14b:free] Received empty but successful response for image 'Jesus Ministered to by Angels, James Tissot 1886.jpg'.
+WARNING:root:[ResearchAgent 60903][Retry Call opengvlab/internvl3-14b:free] Attempt 2 failed: Empty response from opengvlab/internvl3-14b:free for image 'Jesus Ministered to by Angels, James Tissot 1886.jpg'. Retrying...
+WARNING:root:[ResearchAgent 60903][Ensure Fields meta-llama/llama-4-scout:free] Correcting invalid type for grounding_used ('['art history knowledge', 'image analysis']', type <class 'list'>). Setting to False.
+WARNING:root:[ResearchAgent 60903][Ensure Fields meta-llama/llama-4-scout:free] Invalid or non-matching date format '1886'. Setting to None.
+WARNING:root:[ResearchAgent 60903][Consolidation] Excluding result from gemini-2.5-pro-exp-03-25 due to error: Unexpected error in _make_llm_call for gemini-2.5-pro-exp-03-25 processing image 'Jesus Ministered to by Angels, James Tissot 1886.jpg': name 'agent_id' is not defined
+WARNING:root:[ResearchAgent 60903][Consolidation] Excluding result from gemini-2.0-flash-exp due to error: Unexpected error in _make_llm_call for gemini-2.0-flash-exp processing image 'Jesus Ministered to by Angels, James Tissot 1886.jpg': name 'agent_id' is not defined
+ERROR:art_agent_team.docent_agent:[Jesus Ministered to by Angels, James Tissot 1886.jpg] Research stage failed unexpectedly: ResearchAgent._make_llm_call_with_retry() missing 1 required positional argument: 'image_path'
+Traceback (most recent call last):
+  File "/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/docent_agent.py", line 341, in start_workflow
+    research_output = research_agent.research_and_process(current_image_path)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/agents/research_agent.py", line 414, in research_and_process
+    return self.unified_research(image_path)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/agents/research_agent.py", line 510, in unified_research
+    consolidated_results = self._consolidate_results(individual_results)
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/agents/research_agent.py", line 1175, in _consolidate_results
+    consolidation_result = self._make_llm_call_with_retry(
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: ResearchAgent._make_llm_call_with_retry() missing 1 required positional argument: 'image_path'
+WARNING:art_agent_team.docent_agent:[Jesus Ministered to by Angels, James Tissot 1886.jpg] No specific VisionAgent for genre 'Default'. Using Default.
+ERROR:art_agent_team.docent_agent:[Jesus Ministered to by Angels, James Tissot 1886.jpg] Default VisionAgent not found. Skipping Vision stage.
+ERROR:root:[VisionAgentAnimal] ERROR: No Google API key found in config or environment variables.
+ERROR:root:[VisionAgentAnimal] ERROR: No Google API key found in config or environment variables.
+ERROR:root:[VisionAgentAnimal] ERROR: No Google API key found in config or environment variables.
+ERROR:root:[VisionAgentAnimal] ERROR: No Google API key found in config or environment variables.
+ERROR:root:[VisionAgentAnimal] ERROR: No Google API key found in config or environment variables.
+ERROR:root:[VisionAgentPortrait] Failed to load or preprocess image: [Errno 2] No such file or directory: '/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/test_images/Frank Brangwyn, Swans, c.1921.jpg'
+ERROR:root:[VisionAgentPortrait] Error saving analysis outputs: [Errno 2] No such file or directory: '/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/test_images/Frank Brangwyn, Swans, c.1921.jpg'
+Traceback (most recent call last):
+  File "/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/agents/vision_agent_portrait.py", line 392, in save_analysis_outputs
+    img = Image.open(image_path)
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/PIL/Image.py", line 3431, in open
+    fp = builtins.open(filename, "rb")
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/test_images/Frank Brangwyn, Swans, c.1921.jpg'
+ERROR:root:VisionAgentReligiousHistorical: Error in analyze_image: [Errno 2] No such file or directory: '/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/test_images/Frank Brangwyn, Swans, c.1921.jpg'
+Traceback (most recent call last):
+  File "/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/agents/vision_agent_religious_historical.py", line 91, in analyze_image
+    with open(image_path, 'rb') as image_file:
+         ^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/test_images/Frank Brangwyn, Swans, c.1921.jpg'
+ERROR:root:VisionAgentStillLife: Error in analyze_image: [Errno 2] No such file or directory: '/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/test_images/Frank Brangwyn, Swans, c.1921.jpg'
+Traceback (most recent call last):
+  File "/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/agents/vision_agent_still_life.py", line 112, in analyze_image
+    with open(image_path, 'rb') as image_file:
+         ^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/test_images/Frank Brangwyn, Swans, c.1921.jpg'
+WARNING:root:OpenAI API key not found or empty in config. Vision agent tests will be skipped.
+WARNING:root:Upscale service API key not found or empty in config. Upscaling tests will be skipped.
+WARNING:root:[UpscaleAgent] GOOGLE_APPLICATION_CREDENTIALS environment variable not set. Vertex AI will attempt to use Application Default Credentials (ADC).
+WARNING:google.auth.compute_engine._metadata:Compute Engine Metadata server unavailable on attempt 1 of 3. Reason: timed out
+WARNING:google.auth.compute_engine._metadata:Compute Engine Metadata server unavailable on attempt 2 of 3. Reason: timed out
+WARNING:google.auth.compute_engine._metadata:Compute Engine Metadata server unavailable on attempt 3 of 3. Reason: [Errno 64] Host is down
+ERROR:root:[UpscaleAgent] ERROR: An unexpected error occurred during Vertex AI setup: 
+Unable to authenticate your request.
+Depending on your runtime environment, you can complete authentication by:
+- if in local JupyterLab instance: `!gcloud auth login` 
+- if in Colab:
+    -`from google.colab import auth`
+    -`auth.authenticate_user()`
+- if in service account or other: please follow guidance in https://cloud.google.com/docs/authentication
+INFO:root:[ResearchAgent 44138] Initializing...
+WARNING:root:[ModelRegistry 44138] GROK_API_KEY not set in environment. Grok models unavailable.
+WARNING:root:[ModelRegistry 44138] OPENROUTER_API_KEY not set in environment. OpenRouter models unavailable.
+WARNING:root:[ModelRegistry 44138] google_api_key not set in config. Gemini models unavailable.
+WARNING:root:[ModelRegistry 44138] vertex_project_id not set in config. Vertex AI models unavailable.
+WARNING:root:[ModelRegistry 44138] vertex_location not set in config. Vertex AI models unavailable.
+WARNING:root:[ModelRegistry 44138] Cannot register model meta-llama/llama-4-maverick:free. Required client type 'openrouter' is unavailable.
+WARNING:root:[ModelRegistry 44138] Cannot register model meta-llama/llama-4-scout:free. Required client type 'openrouter' is unavailable.
+WARNING:root:[ModelRegistry 44138] Cannot register model qwen/qwen2.5-vl-72b-instruct:free. Required client type 'openrouter' is unavailable.
+WARNING:root:[ModelRegistry 44138] Cannot register model opengvlab/internvl3-14b:free. Required client type 'openrouter' is unavailable.
+WARNING:root:[ModelRegistry 44138] Cannot register model gemini-2.5-pro-exp-03-25. Required client type 'vertexai' is unavailable.
+WARNING:root:[ModelRegistry 44138] Cannot register model gemini-2.0-flash-exp. Required client type 'vertexai' is unavailable.
+WARNING:root:[ModelRegistry 44138] Cannot register model grok-2-vision-1212. Required client type 'grok' is unavailable.
+WARNING:root:[ModelRegistry 44138] Cannot register model mistralai/mistral-small-3.1-24b-instruct:free. Required client type 'openrouter' is unavailable.
+WARNING:root:[ModelRegistry 44138] Cannot register model google/gemma-3-27b-it:free. Required client type 'openrouter' is unavailable.
+WARNING:root:[ModelRegistry 44138] Cannot register model grok-3-mini-fast-high-beta. Required client type 'grok' is unavailable.
+WARNING:root:[ModelRegistry 44138] Model 'grok-3-mini-fast-high-beta' not registered or unavailable.
+WARNING:root:[ResearchAgent 44138] Initialization potentially incomplete. Available Vision Models: 0. Consolidation Model Available: False. Check API keys and config.
+WARNING:root:[ResearchAgent 44138] No vision models seem to be available. Research will likely fail.
+WARNING:root:[ResearchAgent 44138] Consolidation model (grok-3-mini-fast-high-beta) unavailable. Consolidation step will fail.
+INFO:root:[ResearchAgent 52618] Initializing...
+WARNING:root:[ModelRegistry 52618] GROK_API_KEY not set in environment. Grok models unavailable.
+WARNING:root:[ModelRegistry 52618] OPENROUTER_API_KEY not set in environment. OpenRouter models unavailable.
+WARNING:root:[ModelRegistry 52618] google_api_key not set in config. Gemini models unavailable.
+WARNING:root:[ModelRegistry 52618] vertex_project_id not set in config. Vertex AI models unavailable.
+WARNING:root:[ModelRegistry 52618] vertex_location not set in config. Vertex AI models unavailable.
+WARNING:root:[ModelRegistry 52618] Cannot register model meta-llama/llama-4-maverick:free. Required client type 'openrouter' is unavailable.
+WARNING:root:[ModelRegistry 52618] Cannot register model meta-llama/llama-4-scout:free. Required client type 'openrouter' is unavailable.
+WARNING:root:[ModelRegistry 52618] Cannot register model qwen/qwen2.5-vl-72b-instruct:free. Required client type 'openrouter' is unavailable.
+WARNING:root:[ModelRegistry 52618] Cannot register model opengvlab/internvl3-14b:free. Required client type 'openrouter' is unavailable.
+WARNING:root:[ModelRegistry 52618] Cannot register model gemini-2.5-pro-exp-03-25. Required client type 'vertexai' is unavailable.
+WARNING:root:[ModelRegistry 52618] Cannot register model gemini-2.0-flash-exp. Required client type 'vertexai' is unavailable.
+WARNING:root:[ModelRegistry 52618] Cannot register model grok-2-vision-1212. Required client type 'grok' is unavailable.
+WARNING:root:[ModelRegistry 52618] Cannot register model mistralai/mistral-small-3.1-24b-instruct:free. Required client type 'openrouter' is unavailable.
+WARNING:root:[ModelRegistry 52618] Cannot register model google/gemma-3-27b-it:free. Required client type 'openrouter' is unavailable.
+WARNING:root:[ModelRegistry 52618] Cannot register model grok-3-mini-fast-high-beta. Required client type 'grok' is unavailable.
+WARNING:root:[ModelRegistry 52618] Model 'grok-3-mini-fast-high-beta' not registered or unavailable.
+WARNING:root:[ResearchAgent 52618] Initialization potentially incomplete. Available Vision Models: 0. Consolidation Model Available: False. Check API keys and config.
+WARNING:root:[ResearchAgent 52618] No vision models seem to be available. Research will likely fail.
+WARNING:root:[ResearchAgent 52618] Consolidation model (grok-3-mini-fast-high-beta) unavailable. Consolidation step will fail.
+WARNING:root:[ResearchAgent 52618][Ensure Fields test_model] Confidence score '1.5' out of range [0.0, 1.0]. Clamping to 1.0.
+WARNING:root:[ResearchAgent 52618][Ensure Fields test_model] Confidence score '-0.2' out of range [0.0, 1.0]. Clamping to 0.0.
+WARNING:root:[ResearchAgent 52618][Ensure Fields test_model] Invalid type/value for confidence_score ('not_a_number', type <class 'str'>). Setting to default 0.0.
+INFO:root:[ResearchAgent 37935] Initializing...
+WARNING:root:[ModelRegistry 37935] GROK_API_KEY not set in environment. Grok models unavailable.
+WARNING:root:[ModelRegistry 37935] OPENROUTER_API_KEY not set in environment. OpenRouter models unavailable.
+WARNING:root:[ModelRegistry 37935] google_api_key not set in config. Gemini models unavailable.
+WARNING:root:[ModelRegistry 37935] vertex_project_id not set in config. Vertex AI models unavailable.
+WARNING:root:[ModelRegistry 37935] vertex_location not set in config. Vertex AI models unavailable.
+WARNING:root:[ModelRegistry 37935] Cannot register model meta-llama/llama-4-maverick:free. Required client type 'openrouter' is unavailable.
+WARNING:root:[ModelRegistry 37935] Cannot register model meta-llama/llama-4-scout:free. Required client type 'openrouter' is unavailable.
+WARNING:root:[ModelRegistry 37935] Cannot register model qwen/qwen2.5-vl-72b-instruct:free. Required client type 'openrouter' is unavailable.
+WARNING:root:[ModelRegistry 37935] Cannot register model opengvlab/internvl3-14b:free. Required client type 'openrouter' is unavailable.
+WARNING:root:[ModelRegistry 37935] Cannot register model gemini-2.5-pro-exp-03-25. Required client type 'vertexai' is unavailable.
+WARNING:root:[ModelRegistry 37935] Cannot register model gemini-2.0-flash-exp. Required client type 'vertexai' is unavailable.
+WARNING:root:[ModelRegistry 37935] Cannot register model grok-2-vision-1212. Required client type 'grok' is unavailable.
+WARNING:root:[ModelRegistry 37935] Cannot register model mistralai/mistral-small-3.1-24b-instruct:free. Required client type 'openrouter' is unavailable.
+WARNING:root:[ModelRegistry 37935] Cannot register model google/gemma-3-27b-it:free. Required client type 'openrouter' is unavailable.
+WARNING:root:[ModelRegistry 37935] Cannot register model grok-3-mini-fast-high-beta. Required client type 'grok' is unavailable.
+WARNING:root:[ModelRegistry 37935] Model 'grok-3-mini-fast-high-beta' not registered or unavailable.
+WARNING:root:[ResearchAgent 37935] Initialization potentially incomplete. Available Vision Models: 0. Consolidation Model Available: False. Check API keys and config.
+WARNING:root:[ResearchAgent 37935] No vision models seem to be available. Research will likely fail.
+WARNING:root:[ResearchAgent 37935] Consolidation model (grok-3-mini-fast-high-beta) unavailable. Consolidation step will fail.
+WARNING:root:[ResearchAgent 37935][Ensure Fields test_model] Invalid or non-matching date format 'about 1888'. Setting to None.
+WARNING:root:[ResearchAgent 37935][Ensure Fields test_model] Invalid or non-matching date format '19th century'. Setting to None.
+WARNING:root:[ResearchAgent 37935][Ensure Fields test_model] Invalid or non-matching date format 'abc'. Setting to None.
+INFO:root:[ResearchAgent 46244] Initializing...
+WARNING:root:[ModelRegistry 46244] GROK_API_KEY not set in environment. Grok models unavailable.
+WARNING:root:[ModelRegistry 46244] OPENROUTER_API_KEY not set in environment. OpenRouter models unavailable.
+WARNING:root:[ModelRegistry 46244] google_api_key not set in config. Gemini models unavailable.
+WARNING:root:[ModelRegistry 46244] vertex_project_id not set in config. Vertex AI models unavailable.
+WARNING:root:[ModelRegistry 46244] vertex_location not set in config. Vertex AI models unavailable.
+WARNING:root:[ModelRegistry 46244] Cannot register model meta-llama/llama-4-maverick:free. Required client type 'openrouter' is unavailable.
+WARNING:root:[ModelRegistry 46244] Cannot register model meta-llama/llama-4-scout:free. Required client type 'openrouter' is unavailable.
+WARNING:root:[ModelRegistry 46244] Cannot register model qwen/qwen2.5-vl-72b-instruct:free. Required client type 'openrouter' is unavailable.
+WARNING:root:[ModelRegistry 46244] Cannot register model opengvlab/internvl3-14b:free. Required client type 'openrouter' is unavailable.
+WARNING:root:[ModelRegistry 46244] Cannot register model gemini-2.5-pro-exp-03-25. Required client type 'vertexai' is unavailable.
+WARNING:root:[ModelRegistry 46244] Cannot register model gemini-2.0-flash-exp. Required client type 'vertexai' is unavailable.
+WARNING:root:[ModelRegistry 46244] Cannot register model grok-2-vision-1212. Required client type 'grok' is unavailable.
+WARNING:root:[ModelRegistry 46244] Cannot register model mistralai/mistral-small-3.1-24b-instruct:free. Required client type 'openrouter' is unavailable.
+WARNING:root:[ModelRegistry 46244] Cannot register model google/gemma-3-27b-it:free. Required client type 'openrouter' is unavailable.
+WARNING:root:[ModelRegistry 46244] Cannot register model grok-3-mini-fast-high-beta. Required client type 'grok' is unavailable.
+WARNING:root:[ModelRegistry 46244] Model 'grok-3-mini-fast-high-beta' not registered or unavailable.
+WARNING:root:[ResearchAgent 46244] Initialization potentially incomplete. Available Vision Models: 0. Consolidation Model Available: False. Check API keys and config.
+WARNING:root:[ResearchAgent 46244] No vision models seem to be available. Research will likely fail.
+WARNING:root:[ResearchAgent 46244] Consolidation model (grok-3-mini-fast-high-beta) unavailable. Consolidation step will fail.
+WARNING:root:[ResearchAgent 46244][Ensure Fields test_model] Invalid or empty genre format ''. Setting to None.
+INFO:root:[ResearchAgent 84511] Initializing...
+WARNING:root:[ModelRegistry 84511] GROK_API_KEY not set in environment. Grok models unavailable.
+WARNING:root:[ModelRegistry 84511] OPENROUTER_API_KEY not set in environment. OpenRouter models unavailable.
+WARNING:root:[ModelRegistry 84511] google_api_key not set in config. Gemini models unavailable.
+WARNING:root:[ModelRegistry 84511] vertex_project_id not set in config. Vertex AI models unavailable.
+WARNING:root:[ModelRegistry 84511] vertex_location not set in config. Vertex AI models unavailable.
+WARNING:root:[ModelRegistry 84511] Cannot register model meta-llama/llama-4-maverick:free. Required client type 'openrouter' is unavailable.
+WARNING:root:[ModelRegistry 84511] Cannot register model meta-llama/llama-4-scout:free. Required client type 'openrouter' is unavailable.
+WARNING:root:[ModelRegistry 84511] Cannot register model qwen/qwen2.5-vl-72b-instruct:free. Required client type 'openrouter' is unavailable.
+WARNING:root:[ModelRegistry 84511] Cannot register model opengvlab/internvl3-14b:free. Required client type 'openrouter' is unavailable.
+WARNING:root:[ModelRegistry 84511] Cannot register model gemini-2.5-pro-exp-03-25. Required client type 'vertexai' is unavailable.
+WARNING:root:[ModelRegistry 84511] Cannot register model gemini-2.0-flash-exp. Required client type 'vertexai' is unavailable.
+WARNING:root:[ModelRegistry 84511] Cannot register model grok-2-vision-1212. Required client type 'grok' is unavailable.
+WARNING:root:[ModelRegistry 84511] Cannot register model mistralai/mistral-small-3.1-24b-instruct:free. Required client type 'openrouter' is unavailable.
+WARNING:root:[ModelRegistry 84511] Cannot register model google/gemma-3-27b-it:free. Required client type 'openrouter' is unavailable.
+WARNING:root:[ModelRegistry 84511] Cannot register model grok-3-mini-fast-high-beta. Required client type 'grok' is unavailable.
+WARNING:root:[ModelRegistry 84511] Model 'grok-3-mini-fast-high-beta' not registered or unavailable.
+WARNING:root:[ResearchAgent 84511] Initialization potentially incomplete. Available Vision Models: 0. Consolidation Model Available: False. Check API keys and config.
+WARNING:root:[ResearchAgent 84511] No vision models seem to be available. Research will likely fail.
+WARNING:root:[ResearchAgent 84511] Consolidation model (grok-3-mini-fast-high-beta) unavailable. Consolidation step will fail.
+WARNING:root:[ResearchAgent 84511][Ensure Fields test_model] Invalid or empty nationality format ''. Setting to None.
+INFO:root:[ResearchAgent 17031] Initializing...
+WARNING:root:[ModelRegistry 17031] GROK_API_KEY not set in environment. Grok models unavailable.
+WARNING:root:[ModelRegistry 17031] OPENROUTER_API_KEY not set in environment. OpenRouter models unavailable.
+WARNING:root:[ModelRegistry 17031] google_api_key not set in config. Gemini models unavailable.
+WARNING:root:[ModelRegistry 17031] vertex_project_id not set in config. Vertex AI models unavailable.
+WARNING:root:[ModelRegistry 17031] vertex_location not set in config. Vertex AI models unavailable.
+WARNING:root:[ModelRegistry 17031] Cannot register model meta-llama/llama-4-maverick:free. Required client type 'openrouter' is unavailable.
+WARNING:root:[ModelRegistry 17031] Cannot register model meta-llama/llama-4-scout:free. Required client type 'openrouter' is unavailable.
+WARNING:root:[ModelRegistry 17031] Cannot register model qwen/qwen2.5-vl-72b-instruct:free. Required client type 'openrouter' is unavailable.
+WARNING:root:[ModelRegistry 17031] Cannot register model opengvlab/internvl3-14b:free. Required client type 'openrouter' is unavailable.
+WARNING:root:[ModelRegistry 17031] Cannot register model gemini-2.5-pro-exp-03-25. Required client type 'vertexai' is unavailable.
+WARNING:root:[ModelRegistry 17031] Cannot register model gemini-2.0-flash-exp. Required client type 'vertexai' is unavailable.
+WARNING:root:[ModelRegistry 17031] Cannot register model grok-2-vision-1212. Required client type 'grok' is unavailable.
+WARNING:root:[ModelRegistry 17031] Cannot register model mistralai/mistral-small-3.1-24b-instruct:free. Required client type 'openrouter' is unavailable.
+WARNING:root:[ModelRegistry 17031] Cannot register model google/gemma-3-27b-it:free. Required client type 'openrouter' is unavailable.
+WARNING:root:[ModelRegistry 17031] Cannot register model grok-3-mini-fast-high-beta. Required client type 'grok' is unavailable.
+WARNING:root:[ModelRegistry 17031] Model 'grok-3-mini-fast-high-beta' not registered or unavailable.
+WARNING:root:[ResearchAgent 17031] Initialization potentially incomplete. Available Vision Models: 0. Consolidation Model Available: False. Check API keys and config.
+WARNING:root:[ResearchAgent 17031] No vision models seem to be available. Research will likely fail.
+WARNING:root:[ResearchAgent 17031] Consolidation model (grok-3-mini-fast-high-beta) unavailable. Consolidation step will fail.
+ERROR:root:[PromptTemplate] Invalid model_name provided for vision prompt.
+WARNING:root:[PromptTemplate] Invalid filename_tokens type (<class 'NoneType'>). Converting to empty string.
+INFO:root:[TestUpscaleAgent] Test output directory: /Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/output/upscale_output
+ERROR:root:[TestUpscaleAgent] ERROR: Environment variables VERTEX_PROJECT_ID and VERTEX_LOCATION must be set for UpscaleAgent tests.
+INFO:root:Setting environment variables from config...
+INFO:root:Set environment variable GROK_API_KEY from config.
+INFO:root:Set environment variable OPENROUTER_API_KEY from config.
+INFO:root:Set environment variable GOOGLE_API_KEY from config.
+INFO:root:Set environment variable GOOGLE_APPLICATION_CREDENTIALS from config.
+INFO:root:Set environment variable INPUT_FOLDER='/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/' from config.
+INFO:root:Set environment variable OUTPUT_FOLDER='/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/output/' from config.
+INFO:root:Set environment variable WORKSPACE_FOLDER='Art_AI/' from config.
+INFO:root:Environment variable setting complete. Set: 4, Missing: 0, Placeholders: 0
+INFO:root:[TestVisionAgent] Successfully loaded config and set environment variables from /Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/config/config.yaml
+INFO:root:[TestVisionAgent] Required API keys (Grok, Google) found. Proceeding with tests.
+INFO:root:[TestVisionAgent] Test output directory: /Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/output/vision_output
+INFO:root:[VisionAgentAnimal] Gemini Pro model initialized.
+INFO:root:[VisionAgentAnimal] Gemini Pro model initialized.
+ERROR:root:[VisionAgentAnimal] Error cropping image: [Errno 2] No such file or directory: '/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/CorruptedExample_animal.jpg'
+Traceback (most recent call last):
+  File "/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/agents/vision_agent_animal.py", line 642, in copy_and_crop_image
+    img = Image.open(input_path)
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/PIL/Image.py", line 3431, in open
+    fp = builtins.open(filename, "rb")
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/CorruptedExample_animal.jpg'
+INFO:root:[VisionAgentAnimal] Gemini Pro model initialized.
+INFO:root:[VisionAgentAnimal] Gemini Pro model initialized.
+ERROR:root:[VisionAgentAnimal] Error cropping image: [Errno 2] No such file or directory: '/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/UnsupportedExample_animal.tiff'
+Traceback (most recent call last):
+  File "/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/agents/vision_agent_animal.py", line 642, in copy_and_crop_image
+    img = Image.open(input_path)
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/PIL/Image.py", line 3431, in open
+    fp = builtins.open(filename, "rb")
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/UnsupportedExample_animal.tiff'
+INFO:root:[VisionAgentAnimal] Gemini Pro model initialized.
+INFO:root:[VisionAgentAnimal] Gemini Pro model initialized.
+ERROR:root:[VisionAgentAnimal] Error cropping image: [Errno 2] No such file or directory: '/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/Frank Brangwyn_animal.jpg'
+Traceback (most recent call last):
+  File "/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/agents/vision_agent_animal.py", line 642, in copy_and_crop_image
+    img = Image.open(input_path)
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/PIL/Image.py", line 3431, in open
+    fp = builtins.open(filename, "rb")
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/Frank Brangwyn_animal.jpg'
+INFO:root:[TestVisionAgent] Copied and cropped image saved to: None (elapsed: 0.00s)
+ERROR:root:[TestVisionAgent] Error during copy_and_crop_image: None != '/Users/nathaniel.cannon/Documents/VScode[93 chars].jpg' : Returned path does not match expected output path.
+Traceback (most recent call last):
+  File "/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_vision_agent.py", line 107, in test_crop_valid_image
+    self.assertEqual(result_path, expected_output_path, "Returned path does not match expected output path.")
+  File "/opt/anaconda3/lib/python3.12/unittest/case.py", line 885, in assertEqual
+    assertion_func(first, second, msg=msg)
+  File "/opt/anaconda3/lib/python3.12/unittest/case.py", line 878, in _baseAssertEqual
+    raise self.failureException(msg)
+AssertionError: None != '/Users/nathaniel.cannon/Documents/VScode[93 chars].jpg' : Returned path does not match expected output path.
+ERROR:root:[VisionAgentAnimal] ERROR: No Google API key found in config or environment variables.
+ERROR:root:[VisionAgentAnimal] ERROR: No Google API key found in config or environment variables.
+ERROR:root:[VisionAgentAnimal] ERROR: No Google API key found in config or environment variables.
+ERROR:root:[VisionAgentAnimal] ERROR: No Google API key found in config or environment variables.
+ERROR:root:[VisionAgentAnimal] ERROR: No Google API key found in config or environment variables.
+ERROR:root:[VisionAgentPortrait] Failed to load or preprocess image: [Errno 2] No such file or directory: '/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/test_images/Frank Brangwyn, Swans, c.1921.jpg'
+ERROR:root:[VisionAgentPortrait] Error saving analysis outputs: [Errno 2] No such file or directory: '/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/test_images/Frank Brangwyn, Swans, c.1921.jpg'
+Traceback (most recent call last):
+  File "/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/agents/vision_agent_portrait.py", line 392, in save_analysis_outputs
+    img = Image.open(image_path)
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/PIL/Image.py", line 3431, in open
+    fp = builtins.open(filename, "rb")
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/test_images/Frank Brangwyn, Swans, c.1921.jpg'
+ERROR:root:VisionAgentReligiousHistorical: Error in analyze_image: [Errno 2] No such file or directory: '/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/test_images/Frank Brangwyn, Swans, c.1921.jpg'
+Traceback (most recent call last):
+  File "/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/agents/vision_agent_religious_historical.py", line 91, in analyze_image
+    with open(image_path, 'rb') as image_file:
+         ^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/test_images/Frank Brangwyn, Swans, c.1921.jpg'
+ERROR:root:VisionAgentStillLife: Error in analyze_image: [Errno 2] No such file or directory: '/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/test_images/Frank Brangwyn, Swans, c.1921.jpg'
+Traceback (most recent call last):
+  File "/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/agents/vision_agent_still_life.py", line 112, in analyze_image
+    with open(image_path, 'rb') as image_file:
+         ^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/test_images/Frank Brangwyn, Swans, c.1921.jpg'
+WARNING:root:OpenAI API key not found or empty in config. Vision agent tests will be skipped.
+WARNING:root:Upscale service API key not found or empty in config. Upscaling tests will be skipped.
+WARNING:root:[UpscaleAgent] GOOGLE_APPLICATION_CREDENTIALS environment variable not set. Vertex AI will attempt to use Application Default Credentials (ADC).
+WARNING:google.auth.compute_engine._metadata:Compute Engine Metadata server unavailable on attempt 1 of 3. Reason: timed out
+WARNING:google.auth.compute_engine._metadata:Compute Engine Metadata server unavailable on attempt 2 of 3. Reason: timed out
+WARNING:google.auth.compute_engine._metadata:Compute Engine Metadata server unavailable on attempt 3 of 3. Reason: [Errno 64] Host is down
+ERROR:root:[UpscaleAgent] ERROR: An unexpected error occurred during Vertex AI setup: 
+Unable to authenticate your request.
+Depending on your runtime environment, you can complete authentication by:
+- if in local JupyterLab instance: `!gcloud auth login` 
+- if in Colab:
+    -`from google.colab import auth`
+    -`auth.authenticate_user()`
+- if in service account or other: please follow guidance in https://cloud.google.com/docs/authentication
+INFO:root:[ResearchAgent 44084] Initializing...
+WARNING:root:[ModelRegistry 44084] GROK_API_KEY not set in environment. Grok models unavailable.
+WARNING:root:[ModelRegistry 44084] OPENROUTER_API_KEY not set in environment. OpenRouter models unavailable.
+WARNING:root:[ModelRegistry 44084] google_api_key not set in config or environment. Gemini models unavailable.
+WARNING:root:[ModelRegistry 44084] vertex_project_id not set in config or environment. Vertex AI models unavailable.
+WARNING:root:[ModelRegistry 44084] vertex_location not set in config or environment. Vertex AI models unavailable.
+WARNING:root:[ModelRegistry 44084] Skipping registration of model 'meta-llama/llama-4-maverick:free' because required client type 'openrouter' is unavailable or not configured. This is expected if API keys or configs are missing.
+WARNING:root:[ModelRegistry 44084] Skipping registration of model 'meta-llama/llama-4-scout:free' because required client type 'openrouter' is unavailable or not configured. This is expected if API keys or configs are missing.
+WARNING:root:[ModelRegistry 44084] Skipping registration of model 'qwen/qwen2.5-vl-72b-instruct:free' because required client type 'openrouter' is unavailable or not configured. This is expected if API keys or configs are missing.
+WARNING:root:[ModelRegistry 44084] Skipping registration of model 'opengvlab/internvl3-14b:free' because required client type 'openrouter' is unavailable or not configured. This is expected if API keys or configs are missing.
+WARNING:root:[ModelRegistry 44084] Skipping registration of model 'gemini-2.5-pro-exp-03-25' because required client type 'vertexai' is unavailable or not configured. This is expected if API keys or configs are missing.
+WARNING:root:[ModelRegistry 44084] Skipping registration of model 'gemini-2.0-flash-exp' because required client type 'vertexai' is unavailable or not configured. This is expected if API keys or configs are missing.
+WARNING:root:[ModelRegistry 44084] Skipping registration of model 'grok-2-vision-1212' because required client type 'grok' is unavailable or not configured. This is expected if API keys or configs are missing.
+WARNING:root:[ModelRegistry 44084] Skipping registration of model 'mistralai/mistral-small-3.1-24b-instruct:free' because required client type 'openrouter' is unavailable or not configured. This is expected if API keys or configs are missing.
+WARNING:root:[ModelRegistry 44084] Skipping registration of model 'google/gemma-3-27b-it:free' because required client type 'openrouter' is unavailable or not configured. This is expected if API keys or configs are missing.
+WARNING:root:[ModelRegistry 44084] Skipping registration of model 'grok-3-mini-fast-high-beta' because required client type 'grok' is unavailable or not configured. This is expected if API keys or configs are missing.
+WARNING:root:[ModelRegistry 44084] Model 'grok-3-mini-fast-high-beta' not registered or unavailable.
+WARNING:root:[ResearchAgent 44084] Initialization potentially incomplete. Available Vision Models: 0. Consolidation Model Available: False. Check API keys and config.
+WARNING:root:[ResearchAgent 44084] No vision models seem to be available. Research will likely fail.
+WARNING:root:[ResearchAgent 44084] Consolidation model (grok-3-mini-fast-high-beta) unavailable. Consolidation step will fail.
+INFO:root:[TestResearchAgent] Test run complete. No artifacts to clean up.
+INFO:root:[ResearchAgent 28886] Initializing...
+WARNING:root:[ModelRegistry 28886] GROK_API_KEY not set in environment. Grok models unavailable.
+WARNING:root:[ModelRegistry 28886] OPENROUTER_API_KEY not set in environment. OpenRouter models unavailable.
+WARNING:root:[ModelRegistry 28886] google_api_key not set in config or environment. Gemini models unavailable.
+WARNING:root:[ModelRegistry 28886] vertex_project_id not set in config or environment. Vertex AI models unavailable.
+WARNING:root:[ModelRegistry 28886] vertex_location not set in config or environment. Vertex AI models unavailable.
+WARNING:root:[ModelRegistry 28886] Skipping registration of model 'meta-llama/llama-4-maverick:free' because required client type 'openrouter' is unavailable or not configured. This is expected if API keys or configs are missing.
+WARNING:root:[ModelRegistry 28886] Skipping registration of model 'meta-llama/llama-4-scout:free' because required client type 'openrouter' is unavailable or not configured. This is expected if API keys or configs are missing.
+WARNING:root:[ModelRegistry 28886] Skipping registration of model 'qwen/qwen2.5-vl-72b-instruct:free' because required client type 'openrouter' is unavailable or not configured. This is expected if API keys or configs are missing.
+WARNING:root:[ModelRegistry 28886] Skipping registration of model 'opengvlab/internvl3-14b:free' because required client type 'openrouter' is unavailable or not configured. This is expected if API keys or configs are missing.
+WARNING:root:[ModelRegistry 28886] Skipping registration of model 'gemini-2.5-pro-exp-03-25' because required client type 'vertexai' is unavailable or not configured. This is expected if API keys or configs are missing.
+WARNING:root:[ModelRegistry 28886] Skipping registration of model 'gemini-2.0-flash-exp' because required client type 'vertexai' is unavailable or not configured. This is expected if API keys or configs are missing.
+WARNING:root:[ModelRegistry 28886] Skipping registration of model 'grok-2-vision-1212' because required client type 'grok' is unavailable or not configured. This is expected if API keys or configs are missing.
+WARNING:root:[ModelRegistry 28886] Skipping registration of model 'mistralai/mistral-small-3.1-24b-instruct:free' because required client type 'openrouter' is unavailable or not configured. This is expected if API keys or configs are missing.
+WARNING:root:[ModelRegistry 28886] Skipping registration of model 'google/gemma-3-27b-it:free' because required client type 'openrouter' is unavailable or not configured. This is expected if API keys or configs are missing.
+WARNING:root:[ModelRegistry 28886] Skipping registration of model 'grok-3-mini-fast-high-beta' because required client type 'grok' is unavailable or not configured. This is expected if API keys or configs are missing.
+WARNING:root:[ModelRegistry 28886] Model 'grok-3-mini-fast-high-beta' not registered or unavailable.
+WARNING:root:[ResearchAgent 28886] Initialization potentially incomplete. Available Vision Models: 0. Consolidation Model Available: False. Check API keys and config.
+WARNING:root:[ResearchAgent 28886] No vision models seem to be available. Research will likely fail.
+WARNING:root:[ResearchAgent 28886] Consolidation model (grok-3-mini-fast-high-beta) unavailable. Consolidation step will fail.
+WARNING:root:[ModelRegistry 28886] Model 'grok-3-mini-fast-high-beta' not registered or unavailable.
+INFO:root:[ResearchAgent 30846] Initializing...
+WARNING:root:[ModelRegistry 30846] GROK_API_KEY not set in environment. Grok models unavailable.
+WARNING:root:[ModelRegistry 30846] OPENROUTER_API_KEY not set in environment. OpenRouter models unavailable.
+WARNING:root:[ModelRegistry 30846] google_api_key not set in config or environment. Gemini models unavailable.
+WARNING:root:[ModelRegistry 30846] vertex_project_id not set in config or environment. Vertex AI models unavailable.
+WARNING:root:[ModelRegistry 30846] vertex_location not set in config or environment. Vertex AI models unavailable.
+WARNING:root:[ModelRegistry 30846] Skipping registration of model 'meta-llama/llama-4-maverick:free' because required client type 'openrouter' is unavailable or not configured. This is expected if API keys or configs are missing.
+WARNING:root:[ModelRegistry 30846] Skipping registration of model 'meta-llama/llama-4-scout:free' because required client type 'openrouter' is unavailable or not configured. This is expected if API keys or configs are missing.
+WARNING:root:[ModelRegistry 30846] Skipping registration of model 'qwen/qwen2.5-vl-72b-instruct:free' because required client type 'openrouter' is unavailable or not configured. This is expected if API keys or configs are missing.
+WARNING:root:[ModelRegistry 30846] Skipping registration of model 'opengvlab/internvl3-14b:free' because required client type 'openrouter' is unavailable or not configured. This is expected if API keys or configs are missing.
+WARNING:root:[ModelRegistry 30846] Skipping registration of model 'gemini-2.5-pro-exp-03-25' because required client type 'vertexai' is unavailable or not configured. This is expected if API keys or configs are missing.
+WARNING:root:[ModelRegistry 30846] Skipping registration of model 'gemini-2.0-flash-exp' because required client type 'vertexai' is unavailable or not configured. This is expected if API keys or configs are missing.
+WARNING:root:[ModelRegistry 30846] Skipping registration of model 'grok-2-vision-1212' because required client type 'grok' is unavailable or not configured. This is expected if API keys or configs are missing.
+WARNING:root:[ModelRegistry 30846] Skipping registration of model 'mistralai/mistral-small-3.1-24b-instruct:free' because required client type 'openrouter' is unavailable or not configured. This is expected if API keys or configs are missing.
+WARNING:root:[ModelRegistry 30846] Skipping registration of model 'google/gemma-3-27b-it:free' because required client type 'openrouter' is unavailable or not configured. This is expected if API keys or configs are missing.
+WARNING:root:[ModelRegistry 30846] Skipping registration of model 'grok-3-mini-fast-high-beta' because required client type 'grok' is unavailable or not configured. This is expected if API keys or configs are missing.
+WARNING:root:[ModelRegistry 30846] Model 'grok-3-mini-fast-high-beta' not registered or unavailable.
+WARNING:root:[ResearchAgent 30846] Initialization potentially incomplete. Available Vision Models: 0. Consolidation Model Available: False. Check API keys and config.
+WARNING:root:[ResearchAgent 30846] No vision models seem to be available. Research will likely fail.
+WARNING:root:[ResearchAgent 30846] Consolidation model (grok-3-mini-fast-high-beta) unavailable. Consolidation step will fail.
+WARNING:root:[ResearchAgent 30846][Ensure Fields test_model] Confidence score '1.5' out of range [0.0, 1.0]. Clamping to 1.0.
+WARNING:root:[ResearchAgent 30846][Ensure Fields test_model] Confidence score '-0.2' out of range [0.0, 1.0]. Clamping to 0.0.
+WARNING:root:[ResearchAgent 30846][Ensure Fields test_model] Invalid type/value for confidence_score ('not_a_number', type <class 'str'>). Setting to default 0.0.
+INFO:root:[ResearchAgent 18998] Initializing...
+WARNING:root:[ModelRegistry 18998] GROK_API_KEY not set in environment. Grok models unavailable.
+WARNING:root:[ModelRegistry 18998] OPENROUTER_API_KEY not set in environment. OpenRouter models unavailable.
+WARNING:root:[ModelRegistry 18998] google_api_key not set in config or environment. Gemini models unavailable.
+WARNING:root:[ModelRegistry 18998] vertex_project_id not set in config or environment. Vertex AI models unavailable.
+WARNING:root:[ModelRegistry 18998] vertex_location not set in config or environment. Vertex AI models unavailable.
+WARNING:root:[ModelRegistry 18998] Skipping registration of model 'meta-llama/llama-4-maverick:free' because required client type 'openrouter' is unavailable or not configured. This is expected if API keys or configs are missing.
+WARNING:root:[ModelRegistry 18998] Skipping registration of model 'meta-llama/llama-4-scout:free' because required client type 'openrouter' is unavailable or not configured. This is expected if API keys or configs are missing.
+WARNING:root:[ModelRegistry 18998] Skipping registration of model 'qwen/qwen2.5-vl-72b-instruct:free' because required client type 'openrouter' is unavailable or not configured. This is expected if API keys or configs are missing.
+WARNING:root:[ModelRegistry 18998] Skipping registration of model 'opengvlab/internvl3-14b:free' because required client type 'openrouter' is unavailable or not configured. This is expected if API keys or configs are missing.
+WARNING:root:[ModelRegistry 18998] Skipping registration of model 'gemini-2.5-pro-exp-03-25' because required client type 'vertexai' is unavailable or not configured. This is expected if API keys or configs are missing.
+WARNING:root:[ModelRegistry 18998] Skipping registration of model 'gemini-2.0-flash-exp' because required client type 'vertexai' is unavailable or not configured. This is expected if API keys or configs are missing.
+WARNING:root:[ModelRegistry 18998] Skipping registration of model 'grok-2-vision-1212' because required client type 'grok' is unavailable or not configured. This is expected if API keys or configs are missing.
+WARNING:root:[ModelRegistry 18998] Skipping registration of model 'mistralai/mistral-small-3.1-24b-instruct:free' because required client type 'openrouter' is unavailable or not configured. This is expected if API keys or configs are missing.
+WARNING:root:[ModelRegistry 18998] Skipping registration of model 'google/gemma-3-27b-it:free' because required client type 'openrouter' is unavailable or not configured. This is expected if API keys or configs are missing.
+WARNING:root:[ModelRegistry 18998] Skipping registration of model 'grok-3-mini-fast-high-beta' because required client type 'grok' is unavailable or not configured. This is expected if API keys or configs are missing.
+WARNING:root:[ModelRegistry 18998] Model 'grok-3-mini-fast-high-beta' not registered or unavailable.
+WARNING:root:[ResearchAgent 18998] Initialization potentially incomplete. Available Vision Models: 0. Consolidation Model Available: False. Check API keys and config.
+WARNING:root:[ResearchAgent 18998] No vision models seem to be available. Research will likely fail.
+WARNING:root:[ResearchAgent 18998] Consolidation model (grok-3-mini-fast-high-beta) unavailable. Consolidation step will fail.
+WARNING:root:[ResearchAgent 18998][Ensure Fields test_model] Invalid or non-matching date format 'about 1888'. Setting to None.
+WARNING:root:[ResearchAgent 18998][Ensure Fields test_model] Invalid or non-matching date format '19th century'. Setting to None.
+WARNING:root:[ResearchAgent 18998][Ensure Fields test_model] Invalid or non-matching date format 'abc'. Setting to None.
+INFO:root:[ResearchAgent 92631] Initializing...
+WARNING:root:[ModelRegistry 92631] GROK_API_KEY not set in environment. Grok models unavailable.
+WARNING:root:[ModelRegistry 92631] OPENROUTER_API_KEY not set in environment. OpenRouter models unavailable.
+WARNING:root:[ModelRegistry 92631] google_api_key not set in config or environment. Gemini models unavailable.
+WARNING:root:[ModelRegistry 92631] vertex_project_id not set in config or environment. Vertex AI models unavailable.
+WARNING:root:[ModelRegistry 92631] vertex_location not set in config or environment. Vertex AI models unavailable.
+WARNING:root:[ModelRegistry 92631] Skipping registration of model 'meta-llama/llama-4-maverick:free' because required client type 'openrouter' is unavailable or not configured. This is expected if API keys or configs are missing.
+WARNING:root:[ModelRegistry 92631] Skipping registration of model 'meta-llama/llama-4-scout:free' because required client type 'openrouter' is unavailable or not configured. This is expected if API keys or configs are missing.
+WARNING:root:[ModelRegistry 92631] Skipping registration of model 'qwen/qwen2.5-vl-72b-instruct:free' because required client type 'openrouter' is unavailable or not configured. This is expected if API keys or configs are missing.
+WARNING:root:[ModelRegistry 92631] Skipping registration of model 'opengvlab/internvl3-14b:free' because required client type 'openrouter' is unavailable or not configured. This is expected if API keys or configs are missing.
+WARNING:root:[ModelRegistry 92631] Skipping registration of model 'gemini-2.5-pro-exp-03-25' because required client type 'vertexai' is unavailable or not configured. This is expected if API keys or configs are missing.
+WARNING:root:[ModelRegistry 92631] Skipping registration of model 'gemini-2.0-flash-exp' because required client type 'vertexai' is unavailable or not configured. This is expected if API keys or configs are missing.
+WARNING:root:[ModelRegistry 92631] Skipping registration of model 'grok-2-vision-1212' because required client type 'grok' is unavailable or not configured. This is expected if API keys or configs are missing.
+WARNING:root:[ModelRegistry 92631] Skipping registration of model 'mistralai/mistral-small-3.1-24b-instruct:free' because required client type 'openrouter' is unavailable or not configured. This is expected if API keys or configs are missing.
+WARNING:root:[ModelRegistry 92631] Skipping registration of model 'google/gemma-3-27b-it:free' because required client type 'openrouter' is unavailable or not configured. This is expected if API keys or configs are missing.
+WARNING:root:[ModelRegistry 92631] Skipping registration of model 'grok-3-mini-fast-high-beta' because required client type 'grok' is unavailable or not configured. This is expected if API keys or configs are missing.
+WARNING:root:[ModelRegistry 92631] Model 'grok-3-mini-fast-high-beta' not registered or unavailable.
+WARNING:root:[ResearchAgent 92631] Initialization potentially incomplete. Available Vision Models: 0. Consolidation Model Available: False. Check API keys and config.
+WARNING:root:[ResearchAgent 92631] No vision models seem to be available. Research will likely fail.
+WARNING:root:[ResearchAgent 92631] Consolidation model (grok-3-mini-fast-high-beta) unavailable. Consolidation step will fail.
+WARNING:root:[ResearchAgent 92631][Ensure Fields test_model] Invalid or empty genre format ''. Setting to None.
+INFO:root:[ResearchAgent 57300] Initializing...
+WARNING:root:[ModelRegistry 57300] GROK_API_KEY not set in environment. Grok models unavailable.
+WARNING:root:[ModelRegistry 57300] OPENROUTER_API_KEY not set in environment. OpenRouter models unavailable.
+WARNING:root:[ModelRegistry 57300] google_api_key not set in config or environment. Gemini models unavailable.
+WARNING:root:[ModelRegistry 57300] vertex_project_id not set in config or environment. Vertex AI models unavailable.
+WARNING:root:[ModelRegistry 57300] vertex_location not set in config or environment. Vertex AI models unavailable.
+WARNING:root:[ModelRegistry 57300] Skipping registration of model 'meta-llama/llama-4-maverick:free' because required client type 'openrouter' is unavailable or not configured. This is expected if API keys or configs are missing.
+WARNING:root:[ModelRegistry 57300] Skipping registration of model 'meta-llama/llama-4-scout:free' because required client type 'openrouter' is unavailable or not configured. This is expected if API keys or configs are missing.
+WARNING:root:[ModelRegistry 57300] Skipping registration of model 'qwen/qwen2.5-vl-72b-instruct:free' because required client type 'openrouter' is unavailable or not configured. This is expected if API keys or configs are missing.
+WARNING:root:[ModelRegistry 57300] Skipping registration of model 'opengvlab/internvl3-14b:free' because required client type 'openrouter' is unavailable or not configured. This is expected if API keys or configs are missing.
+WARNING:root:[ModelRegistry 57300] Skipping registration of model 'gemini-2.5-pro-exp-03-25' because required client type 'vertexai' is unavailable or not configured. This is expected if API keys or configs are missing.
+WARNING:root:[ModelRegistry 57300] Skipping registration of model 'gemini-2.0-flash-exp' because required client type 'vertexai' is unavailable or not configured. This is expected if API keys or configs are missing.
+WARNING:root:[ModelRegistry 57300] Skipping registration of model 'grok-2-vision-1212' because required client type 'grok' is unavailable or not configured. This is expected if API keys or configs are missing.
+WARNING:root:[ModelRegistry 57300] Skipping registration of model 'mistralai/mistral-small-3.1-24b-instruct:free' because required client type 'openrouter' is unavailable or not configured. This is expected if API keys or configs are missing.
+WARNING:root:[ModelRegistry 57300] Skipping registration of model 'google/gemma-3-27b-it:free' because required client type 'openrouter' is unavailable or not configured. This is expected if API keys or configs are missing.
+WARNING:root:[ModelRegistry 57300] Skipping registration of model 'grok-3-mini-fast-high-beta' because required client type 'grok' is unavailable or not configured. This is expected if API keys or configs are missing.
+WARNING:root:[ModelRegistry 57300] Model 'grok-3-mini-fast-high-beta' not registered or unavailable.
+WARNING:root:[ResearchAgent 57300] Initialization potentially incomplete. Available Vision Models: 0. Consolidation Model Available: False. Check API keys and config.
+WARNING:root:[ResearchAgent 57300] No vision models seem to be available. Research will likely fail.
+WARNING:root:[ResearchAgent 57300] Consolidation model (grok-3-mini-fast-high-beta) unavailable. Consolidation step will fail.
+WARNING:root:[ResearchAgent 57300][Ensure Fields test_model] Invalid or empty nationality format ''. Setting to None.
+INFO:root:[ResearchAgent 49883] Initializing...
+WARNING:root:[ModelRegistry 49883] GROK_API_KEY not set in environment. Grok models unavailable.
+WARNING:root:[ModelRegistry 49883] OPENROUTER_API_KEY not set in environment. OpenRouter models unavailable.
+WARNING:root:[ModelRegistry 49883] google_api_key not set in config or environment. Gemini models unavailable.
+WARNING:root:[ModelRegistry 49883] vertex_project_id not set in config or environment. Vertex AI models unavailable.
+WARNING:root:[ModelRegistry 49883] vertex_location not set in config or environment. Vertex AI models unavailable.
+WARNING:root:[ModelRegistry 49883] Skipping registration of model 'meta-llama/llama-4-maverick:free' because required client type 'openrouter' is unavailable or not configured. This is expected if API keys or configs are missing.
+WARNING:root:[ModelRegistry 49883] Skipping registration of model 'meta-llama/llama-4-scout:free' because required client type 'openrouter' is unavailable or not configured. This is expected if API keys or configs are missing.
+WARNING:root:[ModelRegistry 49883] Skipping registration of model 'qwen/qwen2.5-vl-72b-instruct:free' because required client type 'openrouter' is unavailable or not configured. This is expected if API keys or configs are missing.
+WARNING:root:[ModelRegistry 49883] Skipping registration of model 'opengvlab/internvl3-14b:free' because required client type 'openrouter' is unavailable or not configured. This is expected if API keys or configs are missing.
+WARNING:root:[ModelRegistry 49883] Skipping registration of model 'gemini-2.5-pro-exp-03-25' because required client type 'vertexai' is unavailable or not configured. This is expected if API keys or configs are missing.
+WARNING:root:[ModelRegistry 49883] Skipping registration of model 'gemini-2.0-flash-exp' because required client type 'vertexai' is unavailable or not configured. This is expected if API keys or configs are missing.
+WARNING:root:[ModelRegistry 49883] Skipping registration of model 'grok-2-vision-1212' because required client type 'grok' is unavailable or not configured. This is expected if API keys or configs are missing.
+WARNING:root:[ModelRegistry 49883] Skipping registration of model 'mistralai/mistral-small-3.1-24b-instruct:free' because required client type 'openrouter' is unavailable or not configured. This is expected if API keys or configs are missing.
+WARNING:root:[ModelRegistry 49883] Skipping registration of model 'google/gemma-3-27b-it:free' because required client type 'openrouter' is unavailable or not configured. This is expected if API keys or configs are missing.
+WARNING:root:[ModelRegistry 49883] Skipping registration of model 'grok-3-mini-fast-high-beta' because required client type 'grok' is unavailable or not configured. This is expected if API keys or configs are missing.
+WARNING:root:[ModelRegistry 49883] Model 'grok-3-mini-fast-high-beta' not registered or unavailable.
+WARNING:root:[ResearchAgent 49883] Initialization potentially incomplete. Available Vision Models: 0. Consolidation Model Available: False. Check API keys and config.
+WARNING:root:[ResearchAgent 49883] No vision models seem to be available. Research will likely fail.
+WARNING:root:[ResearchAgent 49883] Consolidation model (grok-3-mini-fast-high-beta) unavailable. Consolidation step will fail.
+ERROR:root:[PromptTemplate] Invalid model_name provided for vision prompt.
+WARNING:root:[PromptTemplate] Invalid filename_tokens type (<class 'NoneType'>). Converting to empty string.
+INFO:root:[TestUpscaleAgent] Test output directory: /Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/output/upscale_output
+ERROR:root:[TestUpscaleAgent] ERROR: Environment variables VERTEX_PROJECT_ID and VERTEX_LOCATION must be set for UpscaleAgent tests.
+INFO:root:Setting environment variables from config...
+INFO:root:Set environment variable GROK_API_KEY from config.
+INFO:root:Set environment variable OPENROUTER_API_KEY from config.
+INFO:root:Set environment variable GOOGLE_API_KEY from config.
+INFO:root:Set environment variable GOOGLE_APPLICATION_CREDENTIALS from config.
+INFO:root:Set environment variable INPUT_FOLDER='/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/' from config.
+INFO:root:Set environment variable OUTPUT_FOLDER='/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/output/' from config.
+INFO:root:Set environment variable WORKSPACE_FOLDER='Art_AI/' from config.
+INFO:root:Environment variable setting complete. Set: 4, Missing: 0, Placeholders: 0
+INFO:root:[TestVisionAgent] Successfully loaded config and set environment variables from /Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/config/config.yaml
+INFO:root:[TestVisionAgent] Required API keys (Grok, Google) found. Proceeding with tests.
+INFO:root:[TestVisionAgent] Test output directory: /Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/output/vision_output
+INFO:root:[VisionAgentAnimal] Gemini Pro model initialized.
+INFO:root:[VisionAgentAnimal] Gemini Pro model initialized.
+ERROR:root:[VisionAgentAnimal] Error cropping image: [Errno 2] No such file or directory: '/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/CorruptedExample_animal.jpg'
+Traceback (most recent call last):
+  File "/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/agents/vision_agent_animal.py", line 642, in copy_and_crop_image
+    img = Image.open(input_path)
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/PIL/Image.py", line 3431, in open
+    fp = builtins.open(filename, "rb")
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/CorruptedExample_animal.jpg'
+INFO:root:[VisionAgentAnimal] Gemini Pro model initialized.
+INFO:root:[VisionAgentAnimal] Gemini Pro model initialized.
+ERROR:root:[VisionAgentAnimal] Error cropping image: [Errno 2] No such file or directory: '/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/UnsupportedExample_animal.tiff'
+Traceback (most recent call last):
+  File "/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/agents/vision_agent_animal.py", line 642, in copy_and_crop_image
+    img = Image.open(input_path)
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/PIL/Image.py", line 3431, in open
+    fp = builtins.open(filename, "rb")
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/UnsupportedExample_animal.tiff'
+INFO:root:[VisionAgentAnimal] Gemini Pro model initialized.
+INFO:root:[VisionAgentAnimal] Gemini Pro model initialized.
+ERROR:root:[VisionAgentAnimal] Error cropping image: [Errno 2] No such file or directory: '/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/Frank Brangwyn_animal.jpg'
+Traceback (most recent call last):
+  File "/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/agents/vision_agent_animal.py", line 642, in copy_and_crop_image
+    img = Image.open(input_path)
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/PIL/Image.py", line 3431, in open
+    fp = builtins.open(filename, "rb")
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/Frank Brangwyn_animal.jpg'
+INFO:root:[TestVisionAgent] Copied and cropped image saved to: None (elapsed: 0.00s)
+ERROR:root:[TestVisionAgent] Error during copy_and_crop_image: None != '/Users/nathaniel.cannon/Documents/VScode[93 chars].jpg' : Returned path does not match expected output path.
+Traceback (most recent call last):
+  File "/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_vision_agent.py", line 107, in test_crop_valid_image
+    self.assertEqual(result_path, expected_output_path, "Returned path does not match expected output path.")
+  File "/opt/anaconda3/lib/python3.12/unittest/case.py", line 885, in assertEqual
+    assertion_func(first, second, msg=msg)
+  File "/opt/anaconda3/lib/python3.12/unittest/case.py", line 878, in _baseAssertEqual
+    raise self.failureException(msg)
+AssertionError: None != '/Users/nathaniel.cannon/Documents/VScode[93 chars].jpg' : Returned path does not match expected output path.
+ERROR:root:[VisionAgentAnimal] Error cropping image: [Errno 2] No such file or directory: '/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/CorruptedExample_animal.jpg'
+Traceback (most recent call last):
+  File "/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/agents/vision_agent_animal.py", line 643, in copy_and_crop_image
+    img = Image.open(input_path)
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/PIL/Image.py", line 3431, in open
+    fp = builtins.open(filename, "rb")
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/CorruptedExample_animal.jpg'
+ERROR:root:[VisionAgentAnimal] Error cropping image: [Errno 2] No such file or directory: '/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/UnsupportedExample_animal.tiff'
+Traceback (most recent call last):
+  File "/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/agents/vision_agent_animal.py", line 643, in copy_and_crop_image
+    img = Image.open(input_path)
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/PIL/Image.py", line 3431, in open
+    fp = builtins.open(filename, "rb")
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/UnsupportedExample_animal.tiff'
+ERROR:root:[VisionAgentAnimal] Error cropping image: [Errno 2] No such file or directory: '/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/Frank Brangwyn_animal.jpg'
+Traceback (most recent call last):
+  File "/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/agents/vision_agent_animal.py", line 643, in copy_and_crop_image
+    img = Image.open(input_path)
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/PIL/Image.py", line 3431, in open
+    fp = builtins.open(filename, "rb")
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/Frank Brangwyn_animal.jpg'
+ERROR:root:[TestVisionAgent] Error during copy_and_crop_image: None != '/Users/nathaniel.cannon/Documents/VScode[93 chars].jpg' : Returned path does not match expected output path.
+Traceback (most recent call last):
+  File "/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_vision_agent.py", line 107, in test_crop_valid_image
+    self.assertEqual(result_path, expected_output_path, "Returned path does not match expected output path.")
+  File "/opt/anaconda3/lib/python3.12/unittest/case.py", line 885, in assertEqual
+    assertion_func(first, second, msg=msg)
+  File "/opt/anaconda3/lib/python3.12/unittest/case.py", line 878, in _baseAssertEqual
+    raise self.failureException(msg)
+AssertionError: None != '/Users/nathaniel.cannon/Documents/VScode[93 chars].jpg' : Returned path does not match expected output path.
+ERROR:root:[VisionAgentAnimal] ERROR: No Google API key found in config or environment variables. Gemini Pro will be unavailable. Reference log index [2025-04-30_VisionAgentAnimalImplementation] for details.
+ERROR:root:[VisionAgentAnimal] ERROR: No Grok API key found in config or environment variables. Grok Vision will be unavailable. Reference log index [2025-04-30_VisionAgentAnimalImplementation] for details.
+ERROR:root:VisionAgentSurrealist: No GOOGLE_API_KEY found in config or environment variables. Gemini Pro will be unavailable.
+ERROR:root:VisionAgentSurrealist: No GROK_API_KEY found in config or environment variables. Grok Vision will be unavailable.
+ERROR:root:[VisionAgentAnimal] Error cropping image: [Errno 2] No such file or directory: '/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/CorruptedExample_animal.jpg'
+Traceback (most recent call last):
+  File "/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/agents/vision_agent_animal.py", line 645, in copy_and_crop_image
+    img = Image.open(input_path)
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/PIL/Image.py", line 3431, in open
+    fp = builtins.open(filename, "rb")
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/CorruptedExample_animal.jpg'
+ERROR:root:[VisionAgentAnimal] Error cropping image: [Errno 2] No such file or directory: '/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/UnsupportedExample_animal.tiff'
+Traceback (most recent call last):
+  File "/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/agents/vision_agent_animal.py", line 645, in copy_and_crop_image
+    img = Image.open(input_path)
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/PIL/Image.py", line 3431, in open
+    fp = builtins.open(filename, "rb")
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/UnsupportedExample_animal.tiff'
+ERROR:root:[VisionAgentAnimal] Error cropping image: [Errno 2] No such file or directory: '/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/Frank Brangwyn_animal.jpg'
+Traceback (most recent call last):
+  File "/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/agents/vision_agent_animal.py", line 645, in copy_and_crop_image
+    img = Image.open(input_path)
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/PIL/Image.py", line 3431, in open
+    fp = builtins.open(filename, "rb")
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/Frank Brangwyn_animal.jpg'
+ERROR:root:[TestVisionAgent] Error during copy_and_crop_image: None != '/Users/nathaniel.cannon/Documents/VScode[93 chars].jpg' : Returned path does not match expected output path.
+Traceback (most recent call last):
+  File "/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_vision_agent.py", line 107, in test_crop_valid_image
+    self.assertEqual(result_path, expected_output_path, "Returned path does not match expected output path.")
+  File "/opt/anaconda3/lib/python3.12/unittest/case.py", line 885, in assertEqual
+    assertion_func(first, second, msg=msg)
+  File "/opt/anaconda3/lib/python3.12/unittest/case.py", line 878, in _baseAssertEqual
+    raise self.failureException(msg)
+AssertionError: None != '/Users/nathaniel.cannon/Documents/VScode[93 chars].jpg' : Returned path does not match expected output path.
+[33mWARNING [0m root:test_artistic_integrity.py:67 OpenAI API key not found or empty in config. Vision agent tests will be skipped.
+[33mWARNING [0m root:test_artistic_integrity.py:75 Upscale service API key not found or empty in config. Upscaling tests will be skipped.
+[33mWARNING [0m root:upscale_agent.py:39 [UpscaleAgent] GOOGLE_APPLICATION_CREDENTIALS environment variable not set. Vertex AI will attempt to use Application Default Credentials (ADC).
+[33mWARNING [0m google.auth.compute_engine._metadata:_metadata.py:142 Compute Engine Metadata server unavailable on attempt 1 of 3. Reason: timed out
+[33mWARNING [0m google.auth.compute_engine._metadata:_metadata.py:142 Compute Engine Metadata server unavailable on attempt 2 of 3. Reason: timed out
+[33mWARNING [0m google.auth.compute_engine._metadata:_metadata.py:142 Compute Engine Metadata server unavailable on attempt 3 of 3. Reason: [Errno 64] Host is down
+[31m[1mERROR   [0m root:upscale_agent.py:72 [UpscaleAgent] ERROR: An unexpected error occurred during Vertex AI setup: 
+Unable to authenticate your request.
+Depending on your runtime environment, you can complete authentication by:
+- if in local JupyterLab instance: `!gcloud auth login` 
+- if in Colab:
+    -`from google.colab import auth`
+    -`auth.authenticate_user()`
+- if in service account or other: please follow guidance in https://cloud.google.com/docs/authentication
+[33mWARNING [0m root:upscale_agent.py:39 [UpscaleAgent] GOOGLE_APPLICATION_CREDENTIALS environment variable not set. Vertex AI will attempt to use Application Default Credentials (ADC).
+[33mWARNING [0m google.auth.compute_engine._metadata:_metadata.py:142 Compute Engine Metadata server unavailable on attempt 1 of 3. Reason: [Errno 64] Host is down
+[33mWARNING [0m google.auth.compute_engine._metadata:_metadata.py:142 Compute Engine Metadata server unavailable on attempt 2 of 3. Reason: [Errno 64] Host is down
+[33mWARNING [0m google.auth.compute_engine._metadata:_metadata.py:142 Compute Engine Metadata server unavailable on attempt 3 of 3. Reason: [Errno 64] Host is down
+[31m[1mERROR   [0m root:upscale_agent.py:72 [UpscaleAgent] ERROR: An unexpected error occurred during Vertex AI setup: 
+Unable to authenticate your request.
+Depending on your runtime environment, you can complete authentication by:
+- if in local JupyterLab instance: `!gcloud auth login` 
+- if in Colab:
+    -`from google.colab import auth`
+    -`auth.authenticate_user()`
+- if in service account or other: please follow guidance in https://cloud.google.com/docs/authentication
+[31m[1mERROR   [0m art_agent_team.tests.test_docent_agent:test_docent_agent.py:70 Error during DocentAgent processing: 'DocentAgent' object has no attribute 'process_request'
+Traceback (most recent call last):
+  File "/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_docent_agent.py", line 68, in test_live_docentagent_full_workflow
+    docent.process_request("Analyze and crop the image.", image_path=input_image)
+    ^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'DocentAgent' object has no attribute 'process_request'
+[33mWARNING [0m root:research_agent.py:121 [ModelRegistry 96991] OPENROUTER_API_KEY not set in environment. OpenRouter models unavailable.
+[33mWARNING [0m root:research_agent.py:170 [ModelRegistry 96991] GOOGLE_APPLICATION_CREDENTIALS not set. Vertex AI will attempt to use Application Default Credentials (ADC).
+[33mWARNING [0m root:research_agent.py:220 [ModelRegistry 96991] Skipping registration of model 'meta-llama/llama-4-maverick:free' because required client type 'openrouter' is unavailable or not configured. This is expected if API keys or configs are missing.
+[33mWARNING [0m root:research_agent.py:220 [ModelRegistry 96991] Skipping registration of model 'meta-llama/llama-4-scout:free' because required client type 'openrouter' is unavailable or not configured. This is expected if API keys or configs are missing.
+[33mWARNING [0m root:research_agent.py:220 [ModelRegistry 96991] Skipping registration of model 'qwen/qwen2.5-vl-72b-instruct:free' because required client type 'openrouter' is unavailable or not configured. This is expected if API keys or configs are missing.
+[33mWARNING [0m root:research_agent.py:220 [ModelRegistry 96991] Skipping registration of model 'opengvlab/internvl3-14b:free' because required client type 'openrouter' is unavailable or not configured. This is expected if API keys or configs are missing.
+[33mWARNING [0m root:research_agent.py:220 [ModelRegistry 96991] Skipping registration of model 'mistralai/mistral-small-3.1-24b-instruct:free' because required client type 'openrouter' is unavailable or not configured. This is expected if API keys or configs are missing.
+[33mWARNING [0m root:research_agent.py:220 [ModelRegistry 96991] Skipping registration of model 'google/gemma-3-27b-it:free' because required client type 'openrouter' is unavailable or not configured. This is expected if API keys or configs are missing.
+[31m[1mERROR   [0m root:research_agent.py:589 [ResearchAgent 96991][Preprocess] Error during preprocessing art_agent_team/tests/test_data/input/Girl with a Black Eye_figure.jpeg: Image file not found: art_agent_team/tests/test_data/input/Girl with a Black Eye_figure.jpeg
+Traceback (most recent call last):
+  File "/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/agents/research_agent.py", line 563, in _preprocess_input
+    raise FileNotFoundError(f"Image file not found: {image_path}")
+FileNotFoundError: Image file not found: art_agent_team/tests/test_data/input/Girl with a Black Eye_figure.jpeg
+[31m[1mERROR   [0m root:research_agent.py:520 [ResearchAgent 96991][Unified Research] Preprocessing failed: Image file not found: art_agent_team/tests/test_data/input/Girl with a Black Eye_figure.jpeg
+WARNING:root:[VisionAgentAnimal] WARNING: No Google API key found in config or environment variables. Gemini Pro will be unavailable. Analysis will proceed with other available models.
+WARNING:root:[VisionAgentAnimal] WARNING: No Grok API key found in config or environment variables. Grok Vision will be unavailable. Analysis will proceed with other available models.
+WARNING:root:VisionAgentSurrealist: WARNING: No GOOGLE_API_KEY found in config or environment variables. Gemini Pro will be unavailable. Analysis will proceed with other available models.
+WARNING:root:VisionAgentSurrealist: WARNING: No GROK_API_KEY found in config or environment variables. Grok Vision will be unavailable. Analysis will proceed with other available models.
+ERROR:root:[VisionAgentAnimal] Cannot identify image file (corrupted or unsupported format): /Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/CorruptedExample_animal.jpg. Error: cannot identify image file '/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/CorruptedExample_animal.jpg'
+ERROR:root:[VisionAgentAnimal] Input file not found for cropping: /Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/non_existent_image.jpg. Error: [Errno 2] No such file or directory: '/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/non_existent_image.jpg'
+ERROR:root:[VisionAgentAnimal] Cannot identify image file (corrupted or unsupported format): /Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/UnsupportedExample_animal.tiff. Error: cannot identify image file '/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/UnsupportedExample_animal.tiff'
+ERROR:root:[VisionAgentAnimal] Input file not found for cropping: /Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/Frank Brangwyn_animal.jpg. Error: [Errno 2] No such file or directory: '/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/Frank Brangwyn_animal.jpg'
+ERROR:root:[TestVisionAgent] Error during copy_and_crop_image: "Input file not found for cropping: /Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/Frank Brangwyn_animal.jpg. Error: [Errno 2] No such file or directory: '/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/Frank Brangwyn_animal.jpg'" is not None : copy_and_crop_image returned an error: Input file not found for cropping: /Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/Frank Brangwyn_animal.jpg. Error: [Errno 2] No such file or directory: '/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/Frank Brangwyn_animal.jpg'
+Traceback (most recent call last):
+  File "/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_vision_agent.py", line 106, in test_crop_valid_image
+    self.assertIsNone(result_dict.get("error"), f"copy_and_crop_image returned an error: {result_dict.get('error')}")
+  File "/opt/anaconda3/lib/python3.12/unittest/case.py", line 1281, in assertIsNone
+    self.fail(self._formatMessage(msg, standardMsg))
+  File "/opt/anaconda3/lib/python3.12/unittest/case.py", line 715, in fail
+    raise self.failureException(msg)
+AssertionError: "Input file not found for cropping: /Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/Frank Brangwyn_animal.jpg. Error: [Errno 2] No such file or directory: '/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/Frank Brangwyn_animal.jpg'" is not None : copy_and_crop_image returned an error: Input file not found for cropping: /Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/Frank Brangwyn_animal.jpg. Error: [Errno 2] No such file or directory: '/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/Frank Brangwyn_animal.jpg'
+WARNING:root:[VisionAgentPortrait] Image file not found: /nonexistent/path/to/image.jpg
+WARNING:root:[VisionAgentReligiousHistorical] Image file not found: /nonexistent/path/to/image.jpg
+WARNING:root:[VisionAgentStillLife] Image file not found: /nonexistent/path/to/image.jpg
+WARNING:root:[VisionAgentStillLife] Image file not found: /nonexistent/path/to/image.jpg
+WARNING:root:[VisionAgentAnimal] WARNING: No Google API key found in config or environment variables. Gemini Pro will be unavailable. Analysis will proceed with other available models.
+WARNING:root:[VisionAgentAnimal] WARNING: No Grok API key found in config or environment variables. Grok Vision will be unavailable. Analysis will proceed with other available models.
+WARNING:root:VisionAgentSurrealist: WARNING: No GOOGLE_API_KEY found in config or environment variables. Gemini Pro will be unavailable. Analysis will proceed with other available models.
+WARNING:root:VisionAgentSurrealist: WARNING: No GROK_API_KEY found in config or environment variables. Grok Vision will be unavailable. Analysis will proceed with other available models.
+ERROR:root:[VisionAgentAnimal] Cannot identify image file (corrupted or unsupported format): /Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/CorruptedExample_animal.jpg. Error: cannot identify image file '/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/CorruptedExample_animal.jpg'
+ERROR:root:[VisionAgentAnimal] Input file not found for cropping: /Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/non_existent_image.jpg. Error: [Errno 2] No such file or directory: '/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/non_existent_image.jpg'
+ERROR:root:[VisionAgentAnimal] Cannot identify image file (corrupted or unsupported format): /Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/UnsupportedExample_animal.tiff. Error: cannot identify image file '/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/UnsupportedExample_animal.tiff'
+WARNING:root:[VisionAgentPortrait] Image file not found: /nonexistent/path/to/image.jpg
+WARNING:root:[VisionAgentReligiousHistorical] Image file not found: /nonexistent/path/to/image.jpg
+WARNING:root:[VisionAgentStillLife] Image file not found: /nonexistent/path/to/image.jpg
+WARNING:root:[VisionAgentStillLife] Image file not found: /nonexistent/path/to/image.jpg
+WARNING:root:[VisionAgentAnimal] WARNING: No Google API key found in config or environment variables. Gemini Pro will be unavailable. Analysis will proceed with other available models.
+WARNING:root:[VisionAgentAnimal] WARNING: No Grok API key found in config or environment variables. Grok Vision will be unavailable. Analysis will proceed with other available models.
+WARNING:root:VisionAgentSurrealist: WARNING: No GOOGLE_API_KEY found in config or environment variables. Gemini Pro will be unavailable. Analysis will proceed with other available models.
+WARNING:root:VisionAgentSurrealist: WARNING: No GROK_API_KEY found in config or environment variables. Grok Vision will be unavailable. Analysis will proceed with other available models.
+ERROR:root:[VisionAgentAnimal] Cannot identify image file (corrupted or unsupported format): /Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/CorruptedExample_animal.jpg. Error: cannot identify image file '/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/CorruptedExample_animal.jpg'
+ERROR:root:[VisionAgentAnimal] Input file not found for cropping: /Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/non_existent_image.jpg. Error: [Errno 2] No such file or directory: '/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/non_existent_image.jpg'
+ERROR:root:[VisionAgentAnimal] Cannot identify image file (corrupted or unsupported format): /Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/UnsupportedExample_animal.tiff. Error: cannot identify image file '/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/UnsupportedExample_animal.tiff'
+WARNING:root:[VisionAgentPortrait] Image file not found: /nonexistent/path/to/image.jpg
+WARNING:root:[VisionAgentReligiousHistorical] Image file not found: /nonexistent/path/to/image.jpg
+WARNING:root:[VisionAgentStillLife] Image file not found: /nonexistent/path/to/image.jpg
+WARNING:root:[VisionAgentStillLife] Image file not found: /nonexistent/path/to/image.jpg
+WARNING:root:[VisionAgentAnimal] WARNING: No Google API key found in config or environment variables. Gemini Pro will be unavailable. Analysis will proceed with other available models.
+WARNING:root:[VisionAgentAnimal] WARNING: No Grok API key found in config or environment variables. Grok Vision will be unavailable. Analysis will proceed with other available models.
+WARNING:root:VisionAgentSurrealist: WARNING: No GOOGLE_API_KEY found in config or environment variables. Gemini Pro will be unavailable. Analysis will proceed with other available models.
+WARNING:root:VisionAgentSurrealist: WARNING: No GROK_API_KEY found in config or environment variables. Grok Vision will be unavailable. Analysis will proceed with other available models.
+ERROR:root:[VisionAgentAnimal] Cannot identify image file (corrupted or unsupported format): /Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/CorruptedExample_animal.jpg. Error: cannot identify image file '/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/CorruptedExample_animal.jpg'
+ERROR:root:[VisionAgentAnimal] Input file not found for cropping: /Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/non_existent_image.jpg. Error: [Errno 2] No such file or directory: '/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/non_existent_image.jpg'
+ERROR:root:[VisionAgentAnimal] Cannot identify image file (corrupted or unsupported format): /Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/UnsupportedExample_animal.tiff. Error: cannot identify image file '/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/UnsupportedExample_animal.tiff'
+WARNING:root:[VisionAgentAnimal] No OPENAI_API_KEY found for Grok thinking step.
+ERROR:root:[VisionAgentAnimal] IOError opening image in analyze_image: /nonexistent/path/to/image.jpg. Error: [Errno 2] No such file or directory: '/nonexistent/path/to/image.jpg'
+WARNING:root:[VisionAgentAnimal] WARNING: No Google API key found in config or environment variables. Gemini Pro will be unavailable. Analysis will proceed with other available models.
+WARNING:root:[VisionAgentAnimal] WARNING: No Grok API key found in config or environment variables. Grok Vision will be unavailable. Analysis will proceed with other available models.
+WARNING:root:VisionAgentSurrealist: WARNING: No GOOGLE_API_KEY found in config or environment variables. Gemini Pro will be unavailable. Analysis will proceed with other available models.
+WARNING:root:VisionAgentSurrealist: WARNING: No GROK_API_KEY found in config or environment variables. Grok Vision will be unavailable. Analysis will proceed with other available models.
+ERROR:root:[VisionAgentAnimal] Cannot identify image file (corrupted or unsupported format): /Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/CorruptedExample_animal.jpg. Error: cannot identify image file '/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/CorruptedExample_animal.jpg'
+ERROR:root:[VisionAgentAnimal] Input file not found for cropping: /Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/non_existent_image.jpg. Error: [Errno 2] No such file or directory: '/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/non_existent_image.jpg'
+ERROR:root:[VisionAgentAnimal] Cannot identify image file (corrupted or unsupported format): /Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/UnsupportedExample_animal.tiff. Error: cannot identify image file '/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/UnsupportedExample_animal.tiff'
+WARNING:root:[VisionAgentAnimal] No OPENAI_API_KEY found for Grok thinking step.
+ERROR:root:[VisionAgentAnimal] IOError opening image in analyze_image: /nonexistent/path/to/image.jpg. Error: [Errno 2] No such file or directory: '/nonexistent/path/to/image.jpg'
+WARNING:root:[VisionAgentAnimal] WARNING: No Google API key found in config or environment variables. Gemini Pro will be unavailable. Analysis will proceed with other available models.
+WARNING:root:[VisionAgentAnimal] WARNING: No Grok API key found in config or environment variables. Grok Vision will be unavailable. Analysis will proceed with other available models.
+WARNING:root:VisionAgentSurrealist: WARNING: No GOOGLE_API_KEY found in config or environment variables. Gemini Pro will be unavailable. Analysis will proceed with other available models.
+WARNING:root:VisionAgentSurrealist: WARNING: No GROK_API_KEY found in config or environment variables. Grok Vision will be unavailable. Analysis will proceed with other available models.
+ERROR:root:[VisionAgentAnimal] Cannot identify image file (corrupted or unsupported format): /Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/CorruptedExample_animal.jpg. Error: cannot identify image file '/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/CorruptedExample_animal.jpg'
+ERROR:root:[VisionAgentAnimal] Input file not found for cropping: /Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/non_existent_image.jpg. Error: [Errno 2] No such file or directory: '/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/non_existent_image.jpg'
+ERROR:root:[VisionAgentAnimal] Cannot identify image file (corrupted or unsupported format): /Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/UnsupportedExample_animal.tiff. Error: cannot identify image file '/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/UnsupportedExample_animal.tiff'
+WARNING:root:[VisionAgentAnimal] No OPENAI_API_KEY found for Grok thinking step.
+ERROR:root:[VisionAgentAnimal] IOError opening image in analyze_image: /nonexistent/path/to/image.jpg. Error: [Errno 2] No such file or directory: '/nonexistent/path/to/image.jpg'
+WARNING:root:[VisionAgentAnimal] WARNING: No Google API key found in config or environment variables. Gemini Pro will be unavailable. Analysis will proceed with other available models.
+WARNING:root:[VisionAgentAnimal] WARNING: No Grok API key found in config or environment variables. Grok Vision will be unavailable. Analysis will proceed with other available models.
+WARNING:root:VisionAgentSurrealist: WARNING: No GOOGLE_API_KEY found in config or environment variables. Gemini Pro will be unavailable. Analysis will proceed with other available models.
+WARNING:root:VisionAgentSurrealist: WARNING: No GROK_API_KEY found in config or environment variables. Grok Vision will be unavailable. Analysis will proceed with other available models.
+ERROR:root:[VisionAgentAnimal] Cannot identify image file (corrupted or unsupported format): /Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/CorruptedExample_animal.jpg. Error: cannot identify image file '/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/CorruptedExample_animal.jpg'
+ERROR:root:[VisionAgentAnimal] Input file not found for cropping: /Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/non_existent_image.jpg. Error: [Errno 2] No such file or directory: '/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/non_existent_image.jpg'
+ERROR:root:[VisionAgentAnimal] Cannot identify image file (corrupted or unsupported format): /Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/UnsupportedExample_animal.tiff. Error: cannot identify image file '/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/UnsupportedExample_animal.tiff'
+WARNING:root:[VisionAgentAnimal] No OPENAI_API_KEY found for Grok thinking step.
+ERROR:root:[VisionAgentAnimal] IOError opening image in analyze_image: /nonexistent/path/to/image.jpg. Error: [Errno 2] No such file or directory: '/nonexistent/path/to/image.jpg'
+WARNING:root:[VisionAgentAnimal] WARNING: No Google API key found in config or environment variables. Gemini Pro will be unavailable. Analysis will proceed with other available models.
+WARNING:root:[VisionAgentAnimal] WARNING: No Grok API key found in config or environment variables. Grok Vision will be unavailable. Analysis will proceed with other available models.
+WARNING:root:VisionAgentSurrealist: WARNING: No GOOGLE_API_KEY found in config or environment variables. Gemini Pro will be unavailable. Analysis will proceed with other available models.
+WARNING:root:VisionAgentSurrealist: WARNING: No GROK_API_KEY found in config or environment variables. Grok Vision will be unavailable. Analysis will proceed with other available models.
+ERROR:root:[VisionAgentAnimal] Cannot identify image file (corrupted or unsupported format): /Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/CorruptedExample_animal.jpg. Error: cannot identify image file '/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/CorruptedExample_animal.jpg'
+ERROR:root:[VisionAgentAnimal] Input file not found for cropping: /Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/non_existent_image.jpg. Error: [Errno 2] No such file or directory: '/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/non_existent_image.jpg'
+ERROR:root:[VisionAgentAnimal] Cannot identify image file (corrupted or unsupported format): /Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/UnsupportedExample_animal.tiff. Error: cannot identify image file '/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/UnsupportedExample_animal.tiff'
+WARNING:root:[VisionAgentAnimal] No OPENAI_API_KEY found for Grok thinking step.
+ERROR:root:[VisionAgentAnimal] IOError opening image in analyze_image: /nonexistent/path/to/image.jpg. Error: [Errno 2] No such file or directory: '/nonexistent/path/to/image.jpg'
+WARNING:root:[VisionAgentAnimal] WARNING: No Google API key found in config or environment variables. Gemini Pro will be unavailable. Analysis will proceed with other available models.
+WARNING:root:[VisionAgentAnimal] WARNING: No Grok API key found in config or environment variables. Grok Vision will be unavailable. Analysis will proceed with other available models.
+WARNING:root:VisionAgentSurrealist: WARNING: No GOOGLE_API_KEY found in config or environment variables. Gemini Pro will be unavailable. Analysis will proceed with other available models.
+WARNING:root:VisionAgentSurrealist: WARNING: No GROK_API_KEY found in config or environment variables. Grok Vision will be unavailable. Analysis will proceed with other available models.
+ERROR:root:[VisionAgentAnimal] Cannot identify image file (corrupted or unsupported format): /Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/CorruptedExample_animal.jpg. Error: cannot identify image file '/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/CorruptedExample_animal.jpg'
+ERROR:root:[VisionAgentAnimal] Input file not found for cropping: /Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/non_existent_image.jpg. Error: [Errno 2] No such file or directory: '/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/non_existent_image.jpg'
+ERROR:root:[VisionAgentAnimal] Cannot identify image file (corrupted or unsupported format): /Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/UnsupportedExample_animal.tiff. Error: cannot identify image file '/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/UnsupportedExample_animal.tiff'
+WARNING:root:[VisionAgentAnimal] No OPENAI_API_KEY found for Grok thinking step.
+ERROR:root:[VisionAgentAnimal] IOError opening image in analyze_image: /nonexistent/path/to/image.jpg. Error: [Errno 2] No such file or directory: '/nonexistent/path/to/image.jpg'
+WARNING:root:[VisionAgentAnimal] WARNING: No Google API key found in config or environment variables. Gemini Pro will be unavailable. Analysis will proceed with other available models.
+WARNING:root:[VisionAgentAnimal] WARNING: No Grok API key found in config or environment variables. Grok Vision will be unavailable. Analysis will proceed with other available models.
+WARNING:root:VisionAgentSurrealist: WARNING: No GOOGLE_API_KEY found in config or environment variables. Gemini Pro will be unavailable. Analysis will proceed with other available models.
+WARNING:root:VisionAgentSurrealist: WARNING: No GROK_API_KEY found in config or environment variables. Grok Vision will be unavailable. Analysis will proceed with other available models.
+ERROR:root:[VisionAgentAnimal] Cannot identify image file (corrupted or unsupported format): /Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/CorruptedExample_animal.jpg. Error: cannot identify image file '/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/CorruptedExample_animal.jpg'
+ERROR:root:[VisionAgentAnimal] Input file not found for cropping: /Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/non_existent_image.jpg. Error: [Errno 2] No such file or directory: '/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/non_existent_image.jpg'
+ERROR:root:[VisionAgentAnimal] Cannot identify image file (corrupted or unsupported format): /Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/UnsupportedExample_animal.tiff. Error: cannot identify image file '/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/UnsupportedExample_animal.tiff'
+WARNING:root:[VisionAgentAnimal] No OPENAI_API_KEY found for Grok thinking step.
+ERROR:root:[VisionAgentAnimal] IOError opening image in analyze_image: /nonexistent/path/to/image.jpg. Error: [Errno 2] No such file or directory: '/nonexistent/path/to/image.jpg'
+WARNING:root:[VisionAgentAnimal] WARNING: No Google API key found in config or environment variables. Gemini Pro will be unavailable. Analysis will proceed with other available models.
+WARNING:root:[VisionAgentAnimal] WARNING: No Grok API key found in config or environment variables. Grok Vision will be unavailable. Analysis will proceed with other available models.
+WARNING:root:VisionAgentSurrealist: WARNING: No GOOGLE_API_KEY found in config or environment variables. Gemini Pro will be unavailable. Analysis will proceed with other available models.
+WARNING:root:VisionAgentSurrealist: WARNING: No GROK_API_KEY found in config or environment variables. Grok Vision will be unavailable. Analysis will proceed with other available models.
+ERROR:root:[VisionAgentAnimal] Cannot identify image file (corrupted or unsupported format): /Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/CorruptedExample_animal.jpg. Error: cannot identify image file '/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/CorruptedExample_animal.jpg'
+ERROR:root:[VisionAgentAnimal] Input file not found for cropping: /Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/non_existent_image.jpg. Error: [Errno 2] No such file or directory: '/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/non_existent_image.jpg'
+ERROR:root:[VisionAgentAnimal] Cannot identify image file (corrupted or unsupported format): /Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/UnsupportedExample_animal.tiff. Error: cannot identify image file '/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/tests/test_data/input/UnsupportedExample_animal.tiff'
+WARNING:root:[VisionAgentAnimal] No OPENAI_API_KEY found for Grok thinking step.
+ERROR:root:[VisionAgentAnimal] Input file not found in analyze_image: /nonexistent/path/to/image.jpg. Error: [Errno 2] No such file or directory: '/nonexistent/path/to/image.jpg'
+ERROR:root:[VisionAgentAnimal] Error in analyze_image: [Errno 2] No such file or directory: '/nonexistent/path/to/image.jpg'
+Traceback (most recent call last):
+  File "/Users/nathaniel.cannon/Documents/VScodeWork/Art_AI/art_agent_team/agents/vision_agent_animal.py", line 123, in analyze_image
+    with open(image_path, 'rb') as image_file:
+         ^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/nonexistent/path/to/image.jpg'

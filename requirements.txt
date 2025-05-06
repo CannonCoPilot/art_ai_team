@@ -1,0 +1,11 @@
+# Core LLM and API clients
+google-generativeai
+openai
+google-api-python-client
+
+# Image processing and data handling
+Pillow
+numpy
+PyYAML
+
+# Add other project dependencies below as needed

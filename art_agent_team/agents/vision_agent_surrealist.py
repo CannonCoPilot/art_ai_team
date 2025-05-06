@@ -1,17 +1,33 @@
+
+
+
+
+
+
+
 import logging
 import os
 import json
 import numpy as np
 import base64
 import io
-from PIL import Image, ImageDraw, ImageFont, ImageColor
+from PIL import Image, ImageDraw, ImageFont, ImageColor, UnidentifiedImageError
 import google.generativeai as genai
 from google.generativeai.types import GenerationConfig
-from groq import Groq # Import Grok client
+from openai import OpenAI  # xAI Grok API client (OpenAI-compatible)
 from dataclasses import dataclass
 from typing import List, Tuple, Optional, Dict, Any
 import math # Needed for centroid calculation
 from queue import Queue # Import Queue
+
+# Custom Exceptions for Image Processing Errors (consistent with other vision agents)
+class CorruptedImageError(Exception):
+    """Custom exception for corrupted image files."""
+    pass
+
+class UnsupportedImageFormatError(Exception):
+    """Custom exception for unsupported image formats."""
+    pass
 
 @dataclass(frozen=True)
 class SegmentationMask:
@@ -28,40 +44,43 @@ class VisionAgentSurrealist:
 
     def __init__(self, config: Optional[Dict[str, Any]] = None):
         """Initialize the VisionAgentSurrealist with configuration."""
-        if config is None:
-            config = {}
-        self.config = config
+        self.config = config if config is not None else {}
 
         # self.input_folder = config.get('input_folder', 'input') # Removed hardcoded input folder
         self.output_folder = config.get('output_folder', 'output')
 
         # Initialize Gemini models
-        google_api_key = self.config.get('google_api_key', os.environ.get('GOOGLE_API_KEY'))
-        if google_api_key:
+        # Enhanced API key retrieval with detailed error handling and fallback
+        google_api_key = self.config.get('google_api_key') if self.config and 'google_api_key' in self.config else os.environ.get('GOOGLE_API_KEY')
+        if not google_api_key:
+            logging.warning("VisionAgentSurrealist: WARNING: No GOOGLE_API_KEY found in config or environment variables. Gemini Pro will be unavailable. Analysis will proceed with other available models.")
+            self.gemini_pro = None
+        else:
             try:
                 genai.configure(api_key=google_api_key)
-                self.gemini_pro = genai.GenerativeModel('gemini-2.5-pro-preview-03-25')
+                # USER REQUIREMENT: Use gemini-2.5-pro-exp-03-25 for vision.
+                self.gemini_pro = genai.GenerativeModel('gemini-2.5-pro-exp-03-25')
                 logging.info("VisionAgentSurrealist: Gemini Pro model initialized.")
             except Exception as e:
-                logging.error(f"VisionAgentSurrealist: Failed to initialize Gemini Pro model: {e}")
+                logging.warning(f"VisionAgentSurrealist: Failed to initialize Gemini Pro model due to missing key or other issue: {e}. Analysis will proceed without Gemini Pro.")
                 self.gemini_pro = None
-        else:
-            logging.error("VisionAgentSurrealist: No Google API key found.")
-            self.gemini_pro = None
 
-        # Initialize Grok Vision model
-        grok_api_key = self.config.get('grok_api_key', os.environ.get('GROK_API_KEY'))
-        if grok_api_key:
+        grok_api_key = self.config.get('grok_api_key') if self.config and 'grok_api_key' in self.config else os.environ.get('GROK_API_KEY')
+        if not grok_api_key:
+            logging.warning("VisionAgentSurrealist: WARNING: No GROK_API_KEY found in config or environment variables. Grok Vision will be unavailable. Analysis will proceed with other available models.")
+            self.grok_client = None
+        else:
             try:
-                self.grok_client = Groq(api_key=grok_api_key)
-                self.grok_vision_model = "grok-2-vision-1212" # As requested
+                from openai import OpenAI
+                self.grok_client = OpenAI(
+                    api_key=grok_api_key,
+                    base_url="https://api.x.ai/v1",
+                )
+                self.grok_vision_model = "grok-2-vision-1212" # Make sure this model name is correct
                 logging.info(f"VisionAgentSurrealist: Grok Vision client initialized with model {self.grok_vision_model}.")
             except Exception as e:
-                logging.error(f"VisionAgentSurrealist: Failed to initialize Grok Vision client: {e}")
+                logging.warning(f"VisionAgentSurrealist: Failed to initialize Grok Vision client due to missing key or other issue: {e}. Analysis will proceed without Grok Vision.")
                 self.grok_client = None
-        else:
-            logging.error("VisionAgentSurrealist: No Grok API key found.")
-            self.grok_client = None
 
         # Colors for visualization
         self.colors = ['red', 'green', 'blue', 'yellow', 'orange', 'pink', 'purple',
@@ -79,6 +98,10 @@ class VisionAgentSurrealist:
         Analyzes surrealist image using Gemini Pro and Grok Vision,
         incorporating research data.
         """
+        self._think_with_grok(
+            f"Preparing to analyze surrealist image at {image_path} with research data: {research_data}. "
+            "What are the key reasoning steps for optimal surrealist object and motif detection?"
+        )
         try:
             # Store research data
             self.primary_subject = research_data.get("primary_subject")
@@ -87,10 +110,23 @@ class VisionAgentSurrealist:
             structured_sentence = research_data.get("structured_sentence", "")
 
             # Load and preprocess image
-            with open(image_path, 'rb') as image_file:
-                content = image_file.read()
+            try:
+                with open(image_path, 'rb') as image_file:
+                    content = image_file.read()
+                img = Image.open(io.BytesIO(content))
+            except FileNotFoundError as e:
+                logging.error(f"VisionAgentSurrealist: Image file not found in analyze_image: {image_path}. Error: {e}")
+                raise
+            except UnidentifiedImageError as e:
+                logging.error(f"VisionAgentSurrealist: Cannot identify image file (corrupted or unsupported format) in analyze_image: {image_path}. Error: {e}")
+                raise CorruptedImageError(f"Corrupted or unsupported image file: {image_path}") from e
+            except IOError as e:
+                logging.error(f"VisionAgentSurrealist: IOError opening image in analyze_image: {image_path}. Error: {e}")
+                raise UnsupportedImageFormatError(f"IOError, possibly unsupported image format: {image_path}") from e
+            except Exception as e: # Catch-all for other image loading/preprocessing issues
+                logging.error(f"VisionAgentSurrealist: Failed to load or preprocess image: {e}")
+                raise RuntimeError(f"Failed to load or preprocess image {image_path}: {e}") from e
 
-            img = Image.open(io.BytesIO(content))
             # Resize for faster processing, maintain aspect ratio
             img.thumbnail([1024, 1024], Image.Resampling.LANCZOS)
 
@@ -227,9 +263,12 @@ class VisionAgentSurrealist:
 
             return results
 
-        except Exception as e:
-            logging.exception(f"VisionAgentSurrealist: Error in analyze_image: {e}")
-            return None
+        except (CorruptedImageError, UnsupportedImageFormatError, FileNotFoundError, RuntimeError) as e:
+            # Re-raise known exceptions that should halt processing
+            raise
+        except Exception as e: # Catch any other unexpected exceptions
+            logging.exception(f"VisionAgentSurrealist: Unexpected error in analyze_image: {e}")
+            return None # Consistent with other agents for general errors
 
     def _aggregate_results(self, gemini_objects: List[Dict], grok_objects: List[Dict]) -> List[Dict]:
         """Aggregates and potentially merges objects from different models."""
@@ -539,13 +578,15 @@ class VisionAgentSurrealist:
             # Save in RGB mode
             if img.mode == 'RGBA':
                 img = img.convert('RGB')
+            # Ensure output directory exists before saving
+            os.makedirs(os.path.dirname(output_path), exist_ok=True)
             img.save(output_path, format='JPEG', quality=95)
 
         except Exception as e:
             logging.exception(f"Error saving labeled version: {e}")
 
 
-    def _save_masked_version(self, img: Image.Image, analysis_results: Dict[str, Any], output_folder: str) -> None:
+    def _save_masked_version(self, img: Image.Image, analysis_results: Dict[str, Any], output_path: str) -> None: # Corrected parameter name
         """Save version with masks for important objects only."""
         try:
             width, height = img.size
@@ -564,10 +605,14 @@ class VisionAgentSurrealist:
             # Save in RGB mode
             if img.mode == 'RGBA':
                 img = img.convert('RGB')
+            
+            # Ensure output directory exists before saving
+            os.makedirs(os.path.dirname(output_path), exist_ok=True)
             img.save(output_path, format='JPEG', quality=95)
+            logging.info(f"VisionAgentSurrealist: Saved masked image to {output_path}")
 
         except Exception as e:
-            logging.exception(f"Error saving masked version: {e}")
+            logging.exception(f"VisionAgentSurrealist: Error saving masked version to {output_path}: {e}")
 
 
     def _parse_gemini_response(self, response_text: str) -> Optional[Dict]:
@@ -667,10 +712,29 @@ class VisionAgentSurrealist:
             return img
 
 
-    def copy_and_crop_image(self, input_path: str, output_path: str, analysis_results: Dict[str, Any]) -> Optional[str]:
-        """Intelligently crop image based on object detection results."""
+    def copy_and_crop_image(self, input_path: str, output_path: str, analysis_results: Dict[str, Any]) -> str:
+        """
+        Intelligently crop image based on object detection results.
+        Returns the output_path (str) on success.
+        Raises CorruptedImageError, UnsupportedImageFormatError, or FileNotFoundError on failure.
+        """
         try:
-            img = Image.open(input_path)
+            # Attempt to open the image first to catch format/corruption errors early
+            try:
+                img = Image.open(input_path)
+            except UnidentifiedImageError as e:
+                error_msg = f"Cannot identify image file (corrupted or unsupported format) for surrealist: {input_path}. Error: {e}"
+                logging.error(f"VisionAgentSurrealist: {error_msg}")
+                raise CorruptedImageError(error_msg) from e
+            except FileNotFoundError as e:
+                error_msg = f"Input file not found for surrealist cropping: {input_path}. Error: {e}"
+                logging.error(f"VisionAgentSurrealist: {error_msg}")
+                raise
+            except IOError as e:
+                error_msg = f"IOError opening image for surrealist cropping (possibly unsupported format): {input_path}. Error: {e}"
+                logging.error(f"VisionAgentSurrealist: {error_msg}")
+                raise UnsupportedImageFormatError(error_msg) from e
+                
             width, height = img.size
             target_ratio = 16/9
             current_ratio = width/height
@@ -683,6 +747,11 @@ class VisionAgentSurrealist:
                 new_width = width
                 new_height = int(width / target_ratio)
 
+            if new_width <= 0 or new_height <= 0:
+                error_msg = f"Invalid target dimensions calculated for surrealist crop: {new_width}x{new_height}"
+                logging.error(f"VisionAgentSurrealist: {error_msg}")
+                raise ValueError(error_msg)
+
             # Find optimal crop window
             best_crop = self._find_optimal_crop(
                 img_size=(width, height),
@@ -690,6 +759,8 @@ class VisionAgentSurrealist:
                 objects=analysis_results.get("objects", []),
                 masks=analysis_results.get("segmentation_masks", [])
             )
+            
+            os.makedirs(os.path.dirname(output_path), exist_ok=True) # Ensure output dir exists
 
             # Apply crop
             if best_crop:
@@ -697,19 +768,41 @@ class VisionAgentSurrealist:
                 if cropped.mode == 'RGBA':
                     cropped = cropped.convert('RGB')
                 cropped.save(output_path, format='JPEG', quality=95)
+                logging.info(f"VisionAgentSurrealist: Saved cropped image to {output_path}")
                 return output_path
             else:
                 # Fallback to center crop
+                logging.warning("VisionAgentSurrealist: Could not determine optimal crop. Using center crop as fallback.")
                 left = (width - new_width) // 2
                 top = (height - new_height) // 2
+                right = left + new_width
+                bottom = top + new_height
+
+                if left < 0 or top < 0 or right > width or bottom > height or new_width <= 0 or new_height <= 0:
+                    error_msg = f"Invalid center crop dimensions for surrealist: L{left} T{top} R{right} B{bottom} for image {width}x{height}. Saving original."
+                    logging.error(f"VisionAgentSurrealist: {error_msg}")
+                    img_rgb = img.convert('RGB') if img.mode == 'RGBA' else img
+                    img_rgb.save(output_path, format='JPEG', quality=95)
+                    return output_path # Still return path, but it's the original
+
                 img_rgb = img.convert('RGB') if img.mode == 'RGBA' else img
-                img_rgb.crop((left, top, left + new_width, top + new_height)).save(output_path)
+                cropped_fallback = img_rgb.crop((left, top, right, bottom))
+                cropped_fallback.save(output_path, format='JPEG', quality=95)
+                logging.info(f"VisionAgentSurrealist: Saved center-cropped image to {output_path} as fallback.")
                 return output_path
 
-        except Exception as e:
-            logging.exception(f"VisionAgentGenre: Error cropping image: {e}")
-            return None
-
+        except FileNotFoundError: # Already handled by the initial Image.open try-except
+            raise
+        except (CorruptedImageError, UnsupportedImageFormatError): # Re-raise custom exceptions
+            raise
+        except IOError as e: # Catch other IOErrors during save, etc.
+            error_msg = f"IOError during surrealist image cropping/saving: {input_path}. Error: {e}"
+            logging.error(f"VisionAgentSurrealist: {error_msg}")
+            raise UnsupportedImageFormatError(error_msg) from e
+        except Exception as e: # General fallback
+            error_msg = f"Unexpected error cropping surrealist image {input_path}: {e}"
+            logging.exception(f"VisionAgentSurrealist: {error_msg}")
+            raise RuntimeError(error_msg) from e
 
     def _find_optimal_crop(self, img_size: Tuple[int, int], target_size: Tuple[int, int],
                           objects: List[Dict[str, Any]], masks: List[SegmentationMask]) -> Optional[Tuple[int, int, int, int]]:
@@ -899,6 +992,27 @@ class VisionAgentSurrealist:
                 score += adjusted_importance
 
         return score
+
+    def _think_with_grok(self, prompt: str) -> Optional[str]:
+        """
+        Internal reasoning using Grok LLM (grok-3-mini-fast-high-beta).
+        """
+        if not self.grok_client:
+            logging.warning("VisionAgentSurrealist: Grok client unavailable for internal reasoning.")
+            return None
+        try:
+            response = self.grok_client.chat.completions.create(
+                messages=[{"role": "user", "content": prompt}],
+                model="grok-3-mini-fast-high-beta",
+                temperature=0.2,
+                max_tokens=256
+            )
+            reasoning = response.choices[0].message.content
+            logging.info(f"VisionAgentSurrealist: Grok thinking output: {reasoning}")
+            return reasoning
+        except Exception as e:
+            logging.error(f"VisionAgentSurrealist: Grok thinking failed: {e}")
+            return None
 
     # Placeholder for handoff to UpscaleAgent
     def handoff_to_upscale(self, cropped_image_path: str, upscale_queue: Queue):

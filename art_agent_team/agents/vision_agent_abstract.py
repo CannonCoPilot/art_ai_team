@@ -4,14 +4,23 @@ import json
 import numpy as np
 import base64
 import io
-from PIL import Image, ImageDraw, ImageFont, ImageColor
+from PIL import Image, ImageDraw, ImageFont, ImageColor, UnidentifiedImageError
 import google.generativeai as genai
 from google.generativeai.types import GenerationConfig
-from groq import Groq # Import Grok client
+from openai import OpenAI  # xAI Grok API client (OpenAI-compatible)
 from dataclasses import dataclass
 from typing import List, Tuple, Optional, Dict, Any
 import math # Needed for centroid calculation
 from queue import Queue # Import Queue
+
+# Custom Exceptions for Image Processing Errors (consistent with other vision agents)
+class CorruptedImageError(Exception):
+    """Custom exception for corrupted image files."""
+    pass
+
+class UnsupportedImageFormatError(Exception):
+    """Custom exception for unsupported image formats."""
+    pass
 
 @dataclass(frozen=True)
 class SegmentationMask:
@@ -26,6 +35,30 @@ class SegmentationMask:
 class VisionAgentAbstract:
     """Agent for analyzing abstract art using Gemini and Grok Vision APIs."""
 
+    def _think_with_grok(self, thought: str) -> str:
+        """
+        USER REQUIREMENT: Internal 'thinking' step using grok-3-mini-fast-high-beta.
+        This method sends the agent's reasoning or validation prompt to the Grok model and returns the response.
+        """
+        from openai import OpenAI
+        api_key = self.config.get("OPENAI_API_KEY") or os.environ.get("OPENAI_API_KEY")
+        if not api_key:
+            logging.warning("[VisionAgentAbstract] No OPENAI_API_KEY found for Grok thinking step.")
+            return ""
+        try:
+            client = OpenAI(api_key=api_key)
+            response = client.chat.completions.create(
+                model="grok-3-mini-fast-high-beta",
+                messages=[{"role": "system", "content": "You are an expert vision analysis agent reasoning about your next step."},
+                          {"role": "user", "content": thought}],
+                max_tokens=256,
+                temperature=0.2,
+            )
+            return response.choices[0].message.content.strip()
+        except Exception as e:
+            logging.error(f"[VisionAgentAbstract] Grok thinking step failed: {e}")
+            return ""
+
     def __init__(self, config: Optional[Dict[str, Any]] = None):
         """Initialize the VisionAgentAbstract with configuration."""
         if config is None:
@@ -36,32 +69,37 @@ class VisionAgentAbstract:
         self.output_folder = config.get('output_folder', 'output')
 
         # Initialize Gemini models
-        google_api_key = self.config.get('google_api_key', os.environ.get('GOOGLE_API_KEY'))
-        if google_api_key:
+        # Enhanced API key retrieval with detailed error handling and fallback
+        google_api_key = config.get('google_api_key') if config and 'google_api_key' in config else os.environ.get('GOOGLE_API_KEY')
+        if not google_api_key:
+            logging.error("VisionAgentAbstract: No GOOGLE_API_KEY found in config or environment variables. Gemini Pro will be unavailable. Reference log index [2025-04-30_VisionAbstractImplementation] for details.")
+            self.gemini_pro = None
+        else:
             try:
                 genai.configure(api_key=google_api_key)
-                self.gemini_pro = genai.GenerativeModel('gemini-2.5-pro-preview-03-25')
+                # USER REQUIREMENT: Use gemini-2.5-pro-exp-03-25 for vision.
+                self.gemini_pro = genai.GenerativeModel('gemini-2.5-pro-exp-03-25')
                 logging.info("VisionAgentAbstract: Gemini Pro model initialized.")
             except Exception as e:
                 logging.error(f"VisionAgentAbstract: Failed to initialize Gemini Pro model: {e}")
                 self.gemini_pro = None
-        else:
-            logging.error("VisionAgentAbstract: No Google API key found.")
-            self.gemini_pro = None
 
-        # Initialize Grok Vision model
-        grok_api_key = self.config.get('grok_api_key', os.environ.get('GROK_API_KEY'))
-        if grok_api_key:
+        grok_api_key = config.get('grok_api_key') if config and 'grok_api_key' in config else os.environ.get('GROK_API_KEY')
+        if not grok_api_key:
+            logging.error("VisionAgentAbstract: No GROK_API_KEY found in config or environment variables. Grok Vision will be unavailable. Reference log index [2025-04-30_VisionAbstractImplementation] for details.")
+            self.grok_client = None
+        else:
             try:
-                self.grok_client = Groq(api_key=grok_api_key)
-                self.grok_vision_model = "grok-2-vision-1212" # As requested
+                from openai import OpenAI
+                self.grok_client = OpenAI(
+                    api_key=grok_api_key,
+                    base_url="https://api.x.ai/v1",
+                )
+                self.grok_vision_model = "grok-2-vision-1212"
                 logging.info(f"VisionAgentAbstract: Grok Vision client initialized with model {self.grok_vision_model}.")
             except Exception as e:
                 logging.error(f"VisionAgentAbstract: Failed to initialize Grok Vision client: {e}")
                 self.grok_client = None
-        else:
-            logging.error("VisionAgentAbstract: No Grok API key found.")
-            self.grok_client = None
 
         # Colors for visualization
         self.colors = ['red', 'green', 'blue', 'yellow', 'orange', 'pink', 'purple',
@@ -79,6 +117,7 @@ class VisionAgentAbstract:
         Analyzes abstract image using Gemini Pro and Grok Vision,
         incorporating research data.
         """
+        self._think_with_grok(f"About to analyze abstract artwork image: {os.path.basename(image_path)}. What reasoning steps should I take to ensure a thorough and accurate analysis?")
         try:
             # Store research data
             self.primary_subject = research_data.get("primary_subject")
@@ -87,10 +126,20 @@ class VisionAgentAbstract:
             structured_sentence = research_data.get("structured_sentence", "")
 
             # Load and preprocess image
-            with open(image_path, 'rb') as image_file:
-                content = image_file.read()
-
-            img = Image.open(io.BytesIO(content))
+            try:
+                with open(image_path, 'rb') as image_file:
+                    content = image_file.read()
+                img = Image.open(io.BytesIO(content))
+            except UnidentifiedImageError as e:
+                logging.error(f"VisionAgentAbstract: Cannot identify image file (corrupted or unsupported format) in analyze_image: {image_path}. Error: {e}")
+                raise CorruptedImageError(f"Corrupted or unsupported image file: {image_path}") from e
+            except FileNotFoundError as e: # Explicitly handle FileNotFoundError here as well
+                logging.error(f"VisionAgentAbstract: Image file not found in analyze_image: {image_path}. Error: {e}")
+                raise # Re-raise FileNotFoundError to be caught by higher level or test
+            except IOError as e: # Catch other IOErrors that might indicate unsupported formats
+                logging.error(f"VisionAgentAbstract: IOError opening image in analyze_image: {image_path}. Error: {e}")
+                raise UnsupportedImageFormatError(f"IOError, possibly unsupported image format: {image_path}") from e
+            
             # Resize for faster processing, maintain aspect ratio
             img.thumbnail([1024, 1024], Image.Resampling.LANCZOS)
 
@@ -228,6 +277,8 @@ class VisionAgentAbstract:
 
             return results
 
+        except (CorruptedImageError, UnsupportedImageFormatError, FileNotFoundError): # Re-raise custom and file exceptions
+            raise
         except Exception as e:
             logging.exception(f"VisionAgentAbstract: Error in analyze_image: {e}")
             return None
@@ -540,6 +591,8 @@ class VisionAgentAbstract:
             # Save in RGB mode
             if img.mode == 'RGBA':
                 img = img.convert('RGB')
+            # Ensure output directory exists before saving
+            os.makedirs(os.path.dirname(output_path), exist_ok=True)
             img.save(output_path, format='JPEG', quality=95)
 
         except Exception as e:
@@ -584,7 +637,7 @@ class VisionAgentAbstract:
             return json.loads(json_str)
         except Exception as e:
             logging.error(f"Failed to parse Gemini response: {e}")
-            logging.debug(f"Raw response text: {response_text}")
+            # logging.debug(f"Raw response text removed for security.") # Optional: Add a comment indicating removal
             return None
 
     def _parse_grok_response(self, response_text: str) -> Optional[Dict]:
@@ -600,7 +653,7 @@ class VisionAgentAbstract:
             return json.loads(json_str)
         except Exception as e:
             logging.error(f"Failed to parse Grok response: {e}")
-            logging.debug(f"Raw response text: {response_text}")
+            # logging.debug(f"Raw response text removed for security.") # Optional: Add a comment indicating removal
             return None
 
 
@@ -668,10 +721,29 @@ class VisionAgentAbstract:
             return img
 
 
-    def copy_and_crop_image(self, input_path: str, output_path: str, analysis_results: Dict[str, Any]) -> Optional[str]:
-        """Intelligently crop image based on object detection results."""
+    def copy_and_crop_image(self, input_path: str, output_path: str, analysis_results: Dict[str, Any]) -> str:
+        """
+        Intelligently crop image based on object detection results.
+        Returns the output_path (str) on success.
+        Raises CorruptedImageError or UnsupportedImageFormatError on failure.
+        """
         try:
-            img = Image.open(input_path)
+            # Attempt to open the image first to catch format/corruption errors early
+            try:
+                img = Image.open(input_path)
+            except UnidentifiedImageError as e:
+                error_msg = f"Cannot identify image file (corrupted or unsupported format) for abstract: {input_path}. Error: {e}"
+                logging.error(f"[VisionAgentAbstract] {error_msg}")
+                raise CorruptedImageError(error_msg) from e
+            except FileNotFoundError as e:
+                error_msg = f"Input file not found for abstract cropping: {input_path}. Error: {e}"
+                logging.error(f"[VisionAgentAbstract] {error_msg}")
+                raise # Re-raise FileNotFoundError
+            except IOError as e:
+                error_msg = f"IOError opening image for abstract cropping (possibly unsupported format): {input_path}. Error: {e}"
+                logging.error(f"[VisionAgentAbstract] {error_msg}")
+                raise UnsupportedImageFormatError(error_msg) from e
+
             width, height = img.size
             target_ratio = 16/9
             current_ratio = width/height
@@ -684,6 +756,11 @@ class VisionAgentAbstract:
                 new_width = width
                 new_height = int(width / target_ratio)
 
+            if new_width <= 0 or new_height <= 0:
+                error_msg = f"Invalid target dimensions calculated for abstract crop: {new_width}x{new_height}"
+                logging.error(f"[VisionAgentAbstract] {error_msg}")
+                raise ValueError(error_msg) # Consistent error raising
+
             # Find optimal crop window
             best_crop = self._find_optimal_crop(
                 img_size=(width, height),
@@ -691,6 +768,8 @@ class VisionAgentAbstract:
                 objects=analysis_results.get("objects", []),
                 masks=analysis_results.get("segmentation_masks", [])
             )
+            
+            os.makedirs(os.path.dirname(output_path), exist_ok=True) # Ensure output dir exists
 
             # Apply crop
             if best_crop:
@@ -698,19 +777,41 @@ class VisionAgentAbstract:
                 if cropped.mode == 'RGBA':
                     cropped = cropped.convert('RGB')
                 cropped.save(output_path, format='JPEG', quality=95)
+                logging.info(f"[VisionAgentAbstract] Saved cropped image to {output_path}")
                 return output_path
             else:
                 # Fallback to center crop
+                logging.warning("[VisionAgentAbstract] Could not determine optimal crop. Using center crop as fallback.")
                 left = (width - new_width) // 2
                 top = (height - new_height) // 2
+                right = left + new_width
+                bottom = top + new_height
+
+                if left < 0 or top < 0 or right > width or bottom > height or new_width <= 0 or new_height <= 0:
+                    error_msg = f"Invalid center crop dimensions for abstract: L{left} T{top} R{right} B{bottom} for image {width}x{height}. Saving original."
+                    logging.error(f"[VisionAgentAbstract] {error_msg}")
+                    img_rgb = img.convert('RGB') if img.mode == 'RGBA' else img
+                    img_rgb.save(output_path, format='JPEG', quality=95)
+                    return output_path # Still return path, but it's the original
+
                 img_rgb = img.convert('RGB') if img.mode == 'RGBA' else img
-                img_rgb.crop((left, top, left + new_width, top + new_height)).save(output_path)
+                cropped_fallback = img_rgb.crop((left, top, right, bottom))
+                cropped_fallback.save(output_path, format='JPEG', quality=95)
+                logging.info(f"[VisionAgentAbstract] Saved center-cropped image to {output_path} as fallback.")
                 return output_path
 
-        except Exception as e:
-            logging.exception(f"VisionAgentAbstract: Error cropping image: {e}")
-            return None
-
+        except FileNotFoundError: # Already handled by the initial Image.open try-except
+            raise
+        except (CorruptedImageError, UnsupportedImageFormatError): # Re-raise custom exceptions
+            raise
+        except IOError as e: # Catch other IOErrors during save, etc.
+            error_msg = f"IOError during abstract image cropping/saving: {input_path}. Error: {e}"
+            logging.error(f"[VisionAgentAbstract] {error_msg}")
+            raise UnsupportedImageFormatError(error_msg) from e
+        except Exception as e: # General fallback
+            error_msg = f"Unexpected error cropping abstract image {input_path}: {e}"
+            logging.exception(f"[VisionAgentAbstract] {error_msg}")
+            raise RuntimeError(error_msg) from e
 
     def _find_optimal_crop(self, img_size: Tuple[int, int], target_size: Tuple[int, int],
                           objects: List[Dict[str, Any]], masks: List[SegmentationMask]) -> Optional[Tuple[int, int, int, int]]:

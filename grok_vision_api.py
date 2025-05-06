@@ -39,7 +39,7 @@ messages = [
 ]
 
 completion = client.chat.completions.create(
-    model="grok-2-vision-latest",
+    model="grok-2-vision-1212",
     messages=messages,
     temperature=0.01,
 )

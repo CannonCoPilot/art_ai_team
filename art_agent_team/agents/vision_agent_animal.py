@@ -4,7 +4,7 @@ import json
 import numpy as np
 import base64
 import io
-from PIL import Image, ImageDraw, ImageFont, ImageColor
+from PIL import Image, ImageDraw, ImageFont, ImageColor, UnidentifiedImageError
 import google.generativeai as genai
 from google.generativeai.types import GenerationConfig
 from openai import OpenAI
@@ -12,6 +12,15 @@ from dataclasses import dataclass
 from typing import List, Tuple, Optional, Dict, Any
 import math # Needed for centroid calculation
 from queue import Queue # Import Queue
+
+# Custom Exceptions for Image Processing Errors
+class CorruptedImageError(Exception):
+    """Custom exception for corrupted image files."""
+    pass
+
+class UnsupportedImageFormatError(Exception):
+    """Custom exception for unsupported image formats."""
+    pass
 
 @dataclass(frozen=True)
 class SegmentationMask:
@@ -26,38 +35,64 @@ class SegmentationMask:
 class VisionAgentAnimal:
     """Agent for analyzing animal art using Gemini and Grok Vision APIs."""
 
+    def _think_with_grok(self, thought: str) -> str:
+        """
+        USER REQUIREMENT: Internal 'thinking' step using grok-3-mini-fast-high-beta.
+        This method sends the agent's reasoning or validation prompt to the Grok model and returns the response.
+        """
+        from openai import OpenAI
+        api_key = self.config.get("OPENAI_API_KEY") or os.environ.get("OPENAI_API_KEY")
+        if not api_key:
+            logging.warning("[VisionAgentAnimal] No OPENAI_API_KEY found for Grok thinking step.")
+            return ""
+        try:
+            client = OpenAI(api_key=api_key)
+            response = client.chat.completions.create(
+                model="grok-3-mini-fast-high-beta",
+                messages=[{"role": "system", "content": "You are an expert vision analysis agent reasoning about your next step."},
+                          {"role": "user", "content": thought}],
+                max_tokens=256,
+                temperature=0.2,
+            )
+            return response.choices[0].message.content.strip()
+        except Exception as e:
+            logging.error(f"[VisionAgentAnimal] Grok thinking step failed: {e}")
+            return ""
+
     def __init__(self, config: Optional[Dict[str, Any]] = None):
         """Initialize the VisionAgentAnimal with configuration."""
-        if config is None:
-            config = {}
-        self.config = config
-
-        # self.input_folder = config.get('input_folder', 'input') # Removed hardcoded input folder
-        self.output_folder = config.get('output_folder', 'output')
+        self.config = config if config is not None else {}
+        # Always use environment variables for configuration
+        self.input_folder = os.environ.get('INPUT_FOLDER', 'input')
+        self.output_folder = os.environ.get('OUTPUT_FOLDER', 'output')
+        self.workspace_folder = os.environ.get('WORKSPACE_FOLDER', 'workspace')
 
         # Initialize Gemini models
-        google_api_key = self.config.get('google_api_key', os.environ.get('GOOGLE_API_KEY'))
-        if google_api_key:
+        google_api_key = config.get('google_api_key') if config and 'google_api_key' in config else os.environ.get('GOOGLE_API_KEY')
+        if not google_api_key:
+            logging.warning("[VisionAgentAnimal] WARNING: No Google API key found in config or environment variables. Gemini Pro will be unavailable. Analysis will proceed with other available models.")
+            self.gemini_pro = None
+        else:
             try:
                 genai.configure(api_key=google_api_key)
-                self.gemini_pro = genai.GenerativeModel('gemini-2.5-pro-preview-03-25')
-                logging.info("VisionAgentAnimal: Gemini Pro model initialized.")
+                # USER REQUIREMENT: Use gemini-2.5-pro-exp-03-25 for vision.
+                self.gemini_pro = genai.GenerativeModel('gemini-2.5-pro-exp-03-25')
+                logging.info("[VisionAgentAnimal] Gemini Pro model initialized.")
             except Exception as e:
-                logging.error(f"VisionAgentAnimal: Failed to initialize Gemini Pro model: {e}")
+                logging.warning(f"[VisionAgentAnimal] Failed to initialize Gemini Pro model due to missing key or other issue: {e}. Analysis will proceed without Gemini Pro.")
                 self.gemini_pro = None
-        else:
-            logging.error("VisionAgentAnimal: No Google API key found.")
-            self.gemini_pro = None
 
         # Initialize Grok Vision model
-        self.grok_api_key = self.config.get('grok_api_key')
-        if not self.grok_api_key:
-            logging.error("VisionAgentAnimal: No Grok API key found.")
-        self.grok_vision_model = "grok-2-vision-latest"
-        self.grok_client = OpenAI(
-            api_key=self.grok_api_key,
-            base_url="https://api.x.ai/v1",
-        ) if self.grok_api_key else None
+        grok_api_key = config.get('grok_api_key') if config and 'grok_api_key' in config else os.environ.get('GROK_API_KEY')
+        if not grok_api_key:
+            logging.warning("[VisionAgentAnimal] WARNING: No Grok API key found in config or environment variables. Grok Vision will be unavailable. Analysis will proceed with other available models.")
+            self.grok_client = None
+        else:
+            self.grok_vision_model = "grok-2-vision-latest"
+            self.grok_client = OpenAI(
+                api_key=grok_api_key,
+                base_url="https://api.x.ai/v1",
+            )
 
         # Colors for visualization
         self.colors = ['red', 'green', 'blue', 'yellow', 'orange', 'pink', 'purple',
@@ -75,6 +110,7 @@ class VisionAgentAnimal:
         Analyzes animal art image using Gemini Pro and Grok Vision,
         incorporating research data.
         """
+        self._think_with_grok(f"About to analyze animal artwork image: {os.path.basename(image_path)}. What reasoning steps should I take to ensure a thorough and accurate analysis?")
         try:
             # Store research data
             self.primary_subject = research_data.get("primary_subject")
@@ -83,10 +119,19 @@ class VisionAgentAnimal:
             structured_sentence = research_data.get("structured_sentence", "")
 
             # Load and preprocess image
-            with open(image_path, 'rb') as image_file:
-                content = image_file.read()
-
-            img = Image.open(io.BytesIO(content))
+            try:
+                with open(image_path, 'rb') as image_file:
+                    content = image_file.read()
+                img = Image.open(io.BytesIO(content))
+            except FileNotFoundError as e:
+                logging.error(f"[VisionAgentAnimal] Input file not found in analyze_image: {image_path}. Error: {e}")
+                raise  # Re-raise FileNotFoundError to allow tests to catch it specifically
+            except UnidentifiedImageError as e:
+                logging.error(f"[VisionAgentAnimal] Cannot identify image file (corrupted or unsupported format) in analyze_image: {image_path}. Error: {e}")
+                raise CorruptedImageError(f"Corrupted or unsupported image file: {image_path}") from e
+            except IOError as e:
+                logging.error(f"[VisionAgentAnimal] IOError opening image in analyze_image: {image_path}. Error: {e}")
+                raise UnsupportedImageFormatError(f"IOError, possibly unsupported image format: {image_path}") from e
             # Removed resampling to always use full resolution image
 
             # Initialize results structure
@@ -158,9 +203,12 @@ class VisionAgentAnimal:
                     gemini_results = self._parse_gemini_response(gemini_response.text)
                     if gemini_results and "objects" in gemini_results:
                         gemini_objects = gemini_results["objects"]
-                        logging.info(f"VisionAgentAnimal: Gemini Pro identified {len(gemini_objects)} objects.")
+                        logging.info(f"[VisionAgentAnimal] Gemini Pro identified {len(gemini_objects)} objects.")
                 except Exception as e:
-                    logging.error(f"VisionAgentAnimal: Error in Gemini Pro analysis: {e}")
+                    # Use logging.exception to include stack trace for unexpected errors
+                    logging.exception(f"[VisionAgentAnimal] Error during Gemini Pro analysis: {e}")
+                    # Optionally raise a custom exception or return specific error indicator
+                    # For now, logging the error and continuing with potentially empty results
 
             # 2. Grok Vision Analysis
             grok_objects = []
@@ -199,15 +247,18 @@ class VisionAgentAnimal:
                     grok_results = self._parse_grok_response(grok_response.choices[0].message.content)
                     if grok_results and "objects" in grok_results:
                         grok_objects = grok_results["objects"]
-                        logging.info(f"VisionAgentAnimal: Grok Vision identified {len(grok_objects)} objects.")
+                        logging.info(f"[VisionAgentAnimal] Grok Vision identified {len(grok_objects)} objects.")
                 except Exception as e:
-                    logging.error(f"VisionAgentAnimal: Error in Grok Vision analysis: {e}")
+                    # Use logging.exception to include stack trace for unexpected errors
+                    logging.exception(f"[VisionAgentAnimal] Error during Grok Vision analysis: {e}")
+                    # Optionally raise a custom exception or return specific error indicator
+                    # For now, logging the error and continuing with potentially empty results
 
 
             # --- Result Aggregation ---
             combined_objects = self._aggregate_results(gemini_objects, grok_objects)
             results["objects"] = combined_objects
-            logging.info(f"VisionAgentAnimal: Aggregated {len(results['objects'])} objects from dual models.")
+            logging.info(f"[VisionAgentAnimal] Aggregated {len(results['objects'])} objects from dual models.")
 
             # --- Post-Analysis Processing ---
 
@@ -236,7 +287,7 @@ class VisionAgentAnimal:
                  if primary_subject_label and primary_subject_label in obj.get("label", "").lower():
                       obj["importance"] = max(obj.get("importance", 0), 2 * highest_other_score)
                       obj["importance"] = min(1.0, obj["importance"])
-                      logging.info(f"VisionAgentAnimal: Boosted primary subject '{obj['label']}' importance to {obj['importance']:.2f}")
+                      logging.info(f"[VisionAgentAnimal] Boosted primary subject '{obj['label']}' importance to {obj['importance']:.2f}")
 
 
             # Create segmentation masks for important objects
@@ -250,8 +301,10 @@ class VisionAgentAnimal:
 
             return results
 
+        except (CorruptedImageError, UnsupportedImageFormatError): # Re-raise custom exceptions
+            raise
         except Exception as e:
-            logging.exception(f"VisionAgentAnimal: Error in analyze_image: {e}")
+            logging.exception(f"[VisionAgentAnimal] Error in analyze_image: {e}")
             return None
 
     def _aggregate_results(self, gemini_objects: List[Dict], grok_objects: List[Dict]) -> List[Dict]:
@@ -354,8 +407,8 @@ class VisionAgentAnimal:
             basename = os.path.splitext(os.path.basename(image_path))[0]
             img = Image.open(image_path)
 
-            logging.debug(f"Saving outputs for {basename} to {output_folder}")
-            logging.debug(f"Analysis results: {json.dumps(analysis_results, indent=2, default=str)}")
+            logging.debug(f"[VisionAgentAnimal] Saving outputs for {basename} to {output_folder}")
+            logging.debug(f"[VisionAgentAnimal] Analysis results: {json.dumps(analysis_results, indent=2, default=str)}")
 
             # 1. Save labeled version (boxes only)
             labeled_path = os.path.join(output_folder, f"{basename}_labeled.jpg")
@@ -369,12 +422,12 @@ class VisionAgentAnimal:
             cropped_path = os.path.join(output_folder, f"{basename}_cropped.jpg")
             self.copy_and_crop_image(image_path, cropped_path, analysis_results)
 
-            logging.info(f"VisionAgentAnimal: Saved all analysis outputs for {basename}")
+            logging.info(f"[VisionAgentAnimal] Saved all analysis outputs for {basename}")
 
             # TODO: Handoff cropped_path to UpscaleAgent queue
 
         except Exception as e:
-            logging.exception(f"VisionAgentAnimal: Error saving analysis outputs: {e}")
+            logging.exception(f"[VisionAgentAnimal] Error saving analysis outputs: {e}")
 
 
     def _save_labeled_version(self, img: Image.Image, analysis_results: Dict[str, Any], output_path: str) -> None:
@@ -437,18 +490,18 @@ class VisionAgentAnimal:
                         feature_color = feature_colors.get(label, color) # Use object color if label not found
                         draw.text((x_coord, y_coord), label, fill=feature_color)
                     elif isinstance(feature, str):
-                        logging.warning(f"Skipping non-facial feature: {feature}")
+                        logging.warning(f"[VisionAgentAnimal] Skipping non-facial feature: {feature}")
                     else:
                         # Log warning for other invalid feature types
-                        logging.warning(f"Skipping non-facial feature: {feature}")
+                        logging.warning(f"[VisionAgentAnimal] Skipping non-facial feature: {feature}")
 
             # Save the labeled version
             if img.mode == 'RGBA':
                 img = img.convert('RGB')
             img.save(output_path, quality=95)
-            logging.info(f"VisionAgentAnimal: Saved labeled version to {output_path}")
+            logging.info(f"[VisionAgentAnimal] Saved labeled version to {output_path}")
         except Exception as e:
-            logging.exception(f"VisionAgentAnimal: Error saving labeled version: {e}")
+            logging.exception(f"[VisionAgentAnimal] Error saving labeled version: {e}")
 
 
     def _save_masked_version(self, img: Image.Image, analysis_results: Dict[str, Any], output_path: str) -> None: # Changed parameter name
@@ -473,42 +526,82 @@ class VisionAgentAnimal:
             img.save(output_path, format='JPEG', quality=95)
 
         except Exception as e:
-            logging.exception(f"Error saving masked version: {e}")
+            logging.exception(f"[VisionAgentAnimal] Error saving masked version: {e}")
 
 
-    def _parse_gemini_response(self, response_text: str) -> Optional[Dict]:
-        """Parse Gemini API response text into JSON."""
+    def _parse_gemini_response(self, response_text: Optional[str]) -> Optional[Dict]:
+        """Parse Gemini API response text into JSON, handling potential errors."""
+        tag = "[VisionAgentAnimal][GeminiParse]"
+        if not response_text:
+            logging.warning(f"{tag} Received empty response text.")
+            return None # Indicate failure clearly
         try:
-            # Clean up response text
+            # Clean up response text (remove markdown code blocks)
             json_str = response_text.strip()
             if json_str.startswith("```json"):
                 json_str = json_str[7:]
             if json_str.endswith("```"):
                 json_str = json_str[:-3]
-            return json.loads(json_str)
-        except json.JSONDecodeError as e:
-            logging.error(f"VisionAgentAnimal: Failed to parse Gemini JSON: {e}. Response: {response_text}")
-            return None
-        except Exception as e:
-            logging.error(f"VisionAgentAnimal: Error parsing Gemini response: {e}")
-            return None
+            json_str = json_str.strip() # Strip again after removing backticks
 
-    def _parse_grok_response(self, response_text: str) -> Optional[Dict]:
-        """Parse Grok API response text into JSON."""
+            # Handle potentially empty string after cleanup
+            if not json_str:
+                 logging.warning(f"{tag} Response text was empty after cleanup.")
+                 return None # Indicate failure clearly
+
+            parsed_json = json.loads(json_str)
+            # Basic validation: check if it's a dictionary
+            if not isinstance(parsed_json, dict):
+                logging.error(f"{tag} Parsed JSON is not a dictionary. Type: {type(parsed_json)}. Response: {response_text[:500]}...")
+                return None # Indicate failure clearly
+            logging.info(f"{tag} Successfully parsed response.")
+            return parsed_json
+        except json.JSONDecodeError as e:
+            logging.error(f"{tag} Failed to parse JSON: {e}. Response snippet: {response_text[:500]}...")
+            # Consider raising a specific exception for critical parsing failures
+            # raise APIParsingError(f"{tag} Failed to parse JSON: {e}") from e
+            return None # Indicate failure clearly
+        except Exception as e:
+            # Log unexpected errors with stack trace
+            logging.exception(f"{tag} Unexpected error parsing response: {e}")
+            return None # Indicate failure clearly
+
+    def _parse_grok_response(self, response_text: Optional[str]) -> Optional[Dict]:
+        """Parse Grok API response text into JSON, handling potential errors."""
+        tag = "[VisionAgentAnimal][GrokParse]"
+        if not response_text:
+            logging.warning(f"{tag} Received empty response text.")
+            return None # Indicate failure clearly
         try:
-            # Grok API responses might also be in JSON blocks
+            # Clean up response text (remove markdown code blocks)
             json_str = response_text.strip()
             if json_str.startswith("```json"):
                 json_str = json_str[7:]
             if json_str.endswith("```"):
                 json_str = json_str[:-3]
-            return json.loads(json_str)
+            json_str = json_str.strip() # Strip again after removing backticks
+
+            # Handle potentially empty string after cleanup
+            if not json_str:
+                 logging.warning(f"{tag} Response text was empty after cleanup.")
+                 return None # Indicate failure clearly
+
+            parsed_json = json.loads(json_str)
+            # Basic validation: check if it's a dictionary
+            if not isinstance(parsed_json, dict):
+                logging.error(f"{tag} Parsed JSON is not a dictionary. Type: {type(parsed_json)}. Response: {response_text[:500]}...")
+                return None # Indicate failure clearly
+            logging.info(f"{tag} Successfully parsed response.")
+            return parsed_json
         except json.JSONDecodeError as e:
-            logging.error(f"VisionAgentAnimal: Failed to parse Grok JSON: {e}. Response: {response_text}")
-            return None
+            logging.error(f"{tag} Failed to parse JSON: {e}. Response snippet: {response_text[:500]}...")
+            # Consider raising a specific exception for critical parsing failures
+            # raise APIParsingError(f"{tag} Failed to parse JSON: {e}") from e
+            return None # Indicate failure clearly
         except Exception as e:
-            logging.error(f"VisionAgentAnimal: Error parsing Grok response: {e}")
-            return None
+            # Log unexpected errors with stack trace
+            logging.exception(f"{tag} Unexpected error parsing response: {e}")
+            return None # Indicate failure clearly
 
     def _create_segmentation_masks(self, detections: List[Dict[str, Any]], image_size: Tuple[int, int]) -> List[SegmentationMask]:
         """Create SegmentationMask objects from detections."""
@@ -537,7 +630,7 @@ class VisionAgentAnimal:
                         label=det.get("label", "unknown")
                     ))
                 except Exception as e:
-                    logging.error(f"VisionAgentAnimal: Error processing mask for {det.get('label')}: {e}")
+                    logging.error(f"[VisionAgentAnimal] Error processing mask for {det.get('label')}: {e}")
         return masks
 
     def _overlay_mask(self, img: Image.Image, mask: np.ndarray, color: str, alpha: float = 0.5) -> Image.Image:
@@ -562,14 +655,33 @@ class VisionAgentAnimal:
             img = Image.alpha_composite(img, mask_image)
             return img
         except Exception as e:
-            logging.exception(f"VisionAgentAnimal: Error overlaying mask: {e}")
+            logging.exception(f"[VisionAgentAnimal] Error overlaying mask: {e}")
             return img # Return original image on error
 
 
-    def copy_and_crop_image(self, input_path: str, output_path: str, analysis_results: Dict[str, Any]) -> Optional[str]:
-        """Copy the image and crop it based on analysis results."""
+    def copy_and_crop_image(self, input_path: str, output_path: str, analysis_results: Dict[str, Any]) -> str:
+        """
+        Copy the image and crop it based on analysis results.
+        Returns the output_path (str) on success.
+        Raises CorruptedImageError or UnsupportedImageFormatError on failure.
+        """
         try:
-            img = Image.open(input_path)
+            # Attempt to open the image first to catch format/corruption errors early
+            try:
+                img = Image.open(input_path)
+            except UnidentifiedImageError as e:
+                error_msg = f"Cannot identify image file (corrupted or unsupported format): {input_path}. Error: {e}"
+                logging.error(f"[VisionAgentAnimal] {error_msg}")
+                raise CorruptedImageError(error_msg) from e
+            except FileNotFoundError as e: # Keep FileNotFoundError specific
+                error_msg = f"Input file not found for cropping: {input_path}. Error: {e}"
+                logging.error(f"[VisionAgentAnimal] {error_msg}")
+                raise # Re-raise FileNotFoundError as it's a distinct issue
+            except IOError as e: # Catch other IOErrors that might indicate unsupported formats
+                error_msg = f"IOError opening image for cropping (possibly unsupported format): {input_path}. Error: {e}"
+                logging.error(f"[VisionAgentAnimal] {error_msg}")
+                raise UnsupportedImageFormatError(error_msg) from e
+
             width, height = img.size
             target_aspect_ratio = 16 / 9
             target_width = int(min(width, height * target_aspect_ratio))
@@ -577,8 +689,14 @@ class VisionAgentAnimal:
 
             # Ensure target dimensions are valid
             if target_width <= 0 or target_height <= 0:
-                 logging.error(f"Invalid target dimensions calculated: {target_width}x{target_height}")
-                 return None
+                error_msg = f"Invalid target dimensions calculated: {target_width}x{target_height}"
+                logging.error(f"[VisionAgentAnimal] {error_msg}")
+                # This case should ideally not happen if image is valid, but good to keep a check.
+                # For consistency, we could raise a generic ValueError or a custom one.
+                # However, the main goal is image format errors, so we'll let this be for now
+                # or consider if it should also be an exception.
+                # For now, let's make it raise an error to be consistent with the new error handling.
+                raise ValueError(error_msg)
 
             # Find the optimal crop box
             best_crop = self._find_optimal_crop(
@@ -593,17 +711,29 @@ class VisionAgentAnimal:
                 # Ensure output directory exists
                 os.makedirs(os.path.dirname(output_path), exist_ok=True)
                 cropped_img.save(output_path, quality=95)
-                logging.info(f"VisionAgentAnimal: Saved cropped image to {output_path}")
+                logging.info(f"[VisionAgentAnimal] Saved cropped image to {output_path}")
                 return output_path
             else:
-                logging.warning("VisionAgentAnimal: Could not determine optimal crop. Saving original.")
-                # Fallback: save a copy of the original if cropping fails
+                logging.warning("[VisionAgentAnimal] Could not determine optimal crop. Saving original as fallback.")
+                os.makedirs(os.path.dirname(output_path), exist_ok=True)
                 img.save(output_path, quality=95)
+                logging.info(f"[VisionAgentAnimal] Saved original image to {output_path} as fallback.")
                 return output_path
 
-        except Exception as e:
-            logging.exception(f"VisionAgentAnimal: Error cropping image: {e}")
-            return None
+        except FileNotFoundError: # Already handled by the initial Image.open try-except
+            raise # Re-raise to be caught by tests or higher-level handlers
+        except (CorruptedImageError, UnsupportedImageFormatError): # Re-raise custom exceptions
+            raise
+        except IOError as e: # Catch other IOErrors during save, etc.
+            error_msg = f"IOError during image cropping/saving (possibly disk issue or format problem): {input_path}. Error: {e}"
+            logging.error(f"[VisionAgentAnimal] {error_msg}")
+            raise UnsupportedImageFormatError(error_msg) from e
+        except Exception as e: # General fallback
+            error_msg = f"Unexpected error cropping image {input_path}: {e}"
+            logging.exception(f"[VisionAgentAnimal] {error_msg}")
+            # Convert generic exceptions to a custom one or re-raise if appropriate
+            # For now, let's raise a generic runtime error to signal failure.
+            raise RuntimeError(error_msg) from e
 
     def _find_optimal_crop(self, img_size: Tuple[int, int], target_size: Tuple[int, int],
                            objects: List[Dict[str, Any]], masks: List[SegmentationMask]) -> Optional[Tuple[int, int, int, int]]:
@@ -750,6 +880,6 @@ class VisionAgentAnimal:
         """Send the cropped image path to the upscale agent's queue."""
         try:
             upscale_queue.put(cropped_image_path)
-            logging.info(f"VisionAgentAnimal: Handed off {os.path.basename(cropped_image_path)} to upscale queue.")
+            logging.info(f"[VisionAgentAnimal] Handed off {os.path.basename(cropped_image_path)} to upscale queue.")
         except Exception as e:
-            logging.exception(f"VisionAgentAnimal: Error handing off to upscale queue: {e}")
+            logging.exception(f"[VisionAgentAnimal] Error handing off to upscale queue: {e}")

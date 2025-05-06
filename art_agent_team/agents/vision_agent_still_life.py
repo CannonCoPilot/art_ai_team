@@ -4,14 +4,23 @@ import json
 import numpy as np
 import base64
 import io
-from PIL import Image, ImageDraw, ImageFont, ImageColor
+from PIL import Image, ImageDraw, ImageFont, ImageColor, UnidentifiedImageError
 import google.generativeai as genai
 from google.generativeai.types import GenerationConfig
-from groq import Groq # Import Grok client
+from openai import OpenAI  # xAI Grok API client (OpenAI-compatible)
 from dataclasses import dataclass
 from typing import List, Tuple, Optional, Dict, Any
 import math # Needed for centroid calculation
 from queue import Queue # Import Queue
+
+# Custom Exceptions for Image Processing Errors (consistent with other vision agents)
+class CorruptedImageError(Exception):
+    """Custom exception for corrupted image files."""
+    pass
+
+class UnsupportedImageFormatError(Exception):
+    """Custom exception for unsupported image formats."""
+    pass
 
 @dataclass(frozen=True)
 class SegmentationMask:
@@ -28,40 +37,43 @@ class VisionAgentStillLife:
 
     def __init__(self, config: Optional[Dict[str, Any]] = None):
         """Initialize the VisionAgentStillLife with configuration."""
-        if config is None:
-            config = {}
-        self.config = config
+        self.config = config if config is not None else {}
 
         # self.input_folder = config.get('input_folder', 'input') # Removed hardcoded input folder
         self.output_folder = config.get('output_folder', 'output')
 
         # Initialize Gemini models
-        google_api_key = self.config.get('google_api_key', os.environ.get('GOOGLE_API_KEY'))
-        if google_api_key:
+        # Enhanced API key retrieval with detailed error handling and fallback
+        google_api_key = config.get('google_api_key') if config and 'google_api_key' in config else os.environ.get('GOOGLE_API_KEY')
+        if not google_api_key:
+            logging.warning("VisionAgentStillLife: WARNING: No GOOGLE_API_KEY found in config or environment variables. Gemini Pro will be unavailable. Analysis will proceed with other available models.")
+            self.gemini_pro = None
+        else:
             try:
                 genai.configure(api_key=google_api_key)
-                self.gemini_pro = genai.GenerativeModel('gemini-2.5-pro-preview-03-25')
+                # USER REQUIREMENT: Use gemini-2.5-pro-exp-03-25 for vision.
+                self.gemini_pro = genai.GenerativeModel('gemini-2.5-pro-exp-03-25')
                 logging.info("VisionAgentStillLife: Gemini Pro model initialized.")
             except Exception as e:
-                logging.error(f"VisionAgentStillLife: Failed to initialize Gemini Pro model: {e}")
+                logging.warning(f"VisionAgentStillLife: Failed to initialize Gemini Pro model due to missing key or other issue: {e}. Analysis will proceed without Gemini Pro.")
                 self.gemini_pro = None
-        else:
-            logging.error("VisionAgentStillLife: No Google API key found.")
-            self.gemini_pro = None
 
-        # Initialize Grok Vision model
-        grok_api_key = self.config.get('grok_api_key', os.environ.get('GROK_API_KEY'))
-        if grok_api_key:
+        grok_api_key = config.get('grok_api_key') if config and 'grok_api_key' in config else os.environ.get('GROK_API_KEY')
+        if not grok_api_key:
+            logging.warning("VisionAgentStillLife: WARNING: No GROK_API_KEY found in config or environment variables. Grok Vision will be unavailable. Analysis will proceed with other available models.")
+            self.grok_client = None
+        else:
             try:
-                self.grok_client = Groq(api_key=grok_api_key)
-                self.grok_vision_model = "grok-2-vision-1212" # As requested
+                from openai import OpenAI # Ensure OpenAI is imported here if not globally
+                self.grok_client = OpenAI(
+                    api_key=grok_api_key,
+                    base_url="https://api.x.ai/v1",
+                )
+                self.grok_vision_model = "grok-2-vision-1212" # Make sure this model name is correct
                 logging.info(f"VisionAgentStillLife: Grok Vision client initialized with model {self.grok_vision_model}.")
             except Exception as e:
-                logging.error(f"VisionAgentStillLife: Failed to initialize Grok Vision client: {e}")
+                logging.warning(f"VisionAgentStillLife: Failed to initialize Grok Vision client due to missing key or other issue: {e}. Analysis will proceed without Grok Vision.")
                 self.grok_client = None
-        else:
-            logging.error("VisionAgentStillLife: No Grok API key found.")
-            self.grok_client = None
 
         # Colors for visualization
         self.colors = ['red', 'green', 'blue', 'yellow', 'orange', 'pink', 'purple',
@@ -78,7 +90,24 @@ class VisionAgentStillLife:
         """
         Analyzes still life image using Gemini Pro and Grok Vision,
         incorporating research data.
+        Enhanced: If both Gemini Pro and Grok Vision clients are unavailable, log error and return structured error response.
         """
+        self._think_with_grok(
+            f"Preparing to analyze still life image at {image_path} with research data: {research_data}. "
+            "What are the key reasoning steps for optimal object detection and arrangement analysis?"
+        )
+        if not self.gemini_pro and not self.grok_client:
+            logging.error("VisionAgentStillLife: Both Gemini Pro and Grok Vision clients are unavailable due to missing API keys.")
+            return {
+                "error": "Both Gemini Pro and Grok Vision clients are unavailable due to missing API keys.",
+                "objects": [],
+                "segmentation_masks": [],
+                "image_size": None,
+                "relationships": [],
+                "style": research_data.get("style", "still life") if isinstance(research_data, dict) else "still life",
+                "primary_subject": None,
+                "secondary_subjects": []
+            }
         try:
             # Store research data
             self.primary_subject = research_data.get("primary_subject")
@@ -87,10 +116,30 @@ class VisionAgentStillLife:
             structured_sentence = research_data.get("structured_sentence", "")
 
             # Load and preprocess image
-            with open(image_path, 'rb') as image_file:
-                content = image_file.read()
+            if not os.path.exists(image_path):
+                logging.warning(f"[VisionAgentStillLife] Image file not found: {image_path}")
+                return {
+                    "error": f"Image file not found: {image_path}",
+                    "objects": [],
+                    "segmentation_masks": [],
+                    "image_size": None,
+                    "relationships": [],
+                    "style": research_data.get("style", "still life"),
+                    "primary_subject": self.primary_subject,
+                    "secondary_subjects": self.secondary_subjects
+                }
 
-            img = Image.open(io.BytesIO(content))
+            try:
+                with open(image_path, 'rb') as image_file:
+                    content = image_file.read()
+                img = Image.open(io.BytesIO(content))
+            except UnidentifiedImageError as e:
+                logging.error(f"VisionAgentStillLife: Cannot identify image file (corrupted or unsupported format) in analyze_image: {image_path}. Error: {e}")
+                raise CorruptedImageError(f"Corrupted or unsupported image file: {image_path}") from e
+            except IOError as e: # Catch other IOErrors that might indicate unsupported formats
+                logging.error(f"VisionAgentStillLife: IOError opening image in analyze_image: {image_path}. Error: {e}")
+                raise UnsupportedImageFormatError(f"IOError, possibly unsupported image format: {image_path}") from e
+            
             # Resize for faster processing, maintain aspect ratio
             img.thumbnail([1024, 1024], Image.Resampling.LANCZOS)
 
@@ -227,6 +276,11 @@ class VisionAgentStillLife:
 
             return results
 
+        except FileNotFoundError: # Already handled by the initial os.path.exists check
+            logging.error(f"VisionAgentStillLife: File disappeared after initial check: {image_path}")
+            raise
+        except (CorruptedImageError, UnsupportedImageFormatError): # Re-raise custom exceptions
+            raise
         except Exception as e:
             logging.exception(f"VisionAgentStillLife: Error in analyze_image: {e}")
             return None
@@ -325,6 +379,9 @@ class VisionAgentStillLife:
         """Save all versions of the analyzed image."""
         try:
             basename = os.path.splitext(os.path.basename(image_path))[0]
+            if not os.path.exists(image_path):
+                logging.warning(f"[VisionAgentStillLife] Image file not found for saving outputs: {image_path}")
+                return
             img = Image.open(image_path)
 
             # 1. Save labeled version (boxes only)
@@ -542,33 +599,35 @@ class VisionAgentStillLife:
             # Save in RGB mode
             if img.mode == 'RGBA':
                 img = img.convert('RGB')
+            # Ensure output directory exists before saving
+            os.makedirs(os.path.dirname(output_path), exist_ok=True)
             img.save(output_path, format='JPEG', quality=95)
 
         except Exception as e:
             logging.exception(f"Error saving labeled version: {e}")
 
 
-    def _save_masked_version(self, img: Image.Image, analysis_results: Dict[str, Any], output_folder: str) -> None:
+    def _save_masked_version(self, img: Image.Image, analysis_results: Dict[str, Any], output_path: str) -> None:
         """Save version with masks for important objects only."""
         try:
             width, height = img.size
-
+    
             # Get important objects
             important_objects = self._threshold_important_objects(analysis_results.get("objects", []))
-
+    
             # Create masks for important objects
             masks = self._create_segmentation_masks(important_objects, img.size)
-
+    
             # Apply masks
             for i, mask in enumerate(masks):
                 color = self.colors[i % len(self.colors)]
                 img = self._overlay_mask(img, mask.mask, color)
-
+    
             # Save in RGB mode
             if img.mode == 'RGBA':
                 img = img.convert('RGB')
             img.save(output_path, format='JPEG', quality=95)
-
+    
         except Exception as e:
             logging.exception(f"Error saving masked version: {e}")
 
@@ -670,10 +729,31 @@ class VisionAgentStillLife:
             return img
 
 
-    def copy_and_crop_image(self, input_path: str, output_path: str, analysis_results: Dict[str, Any]) -> Optional[str]:
-        """Intelligently crop image based on object detection results."""
+    def copy_and_crop_image(self, input_path: str, output_path: str, analysis_results: Dict[str, Any]) -> str:
+        """
+        Intelligently crop image based on object detection results.
+        Returns the output_path (str) on success.
+        Raises CorruptedImageError or UnsupportedImageFormatError on failure.
+        """
         try:
-            img = Image.open(input_path)
+            # Attempt to open the image first to catch format/corruption errors early
+            try:
+                if not os.path.exists(input_path): # Keep the explicit check for FileNotFoundError
+                    error_msg = f"Input image file not found for still life cropping: {input_path}"
+                    logging.warning(f"[VisionAgentStillLife] {error_msg}")
+                    raise FileNotFoundError(error_msg)
+                img = Image.open(input_path)
+            except UnidentifiedImageError as e:
+                error_msg = f"Cannot identify image file (corrupted or unsupported format) for still life: {input_path}. Error: {e}"
+                logging.error(f"[VisionAgentStillLife] {error_msg}")
+                raise CorruptedImageError(error_msg) from e
+            except FileNotFoundError: # Re-raise from the os.path.exists check
+                raise
+            except IOError as e: # Catch other IOErrors that might indicate unsupported formats
+                error_msg = f"IOError opening image for still life cropping (possibly unsupported format): {input_path}. Error: {e}"
+                logging.error(f"[VisionAgentStillLife] {error_msg}")
+                raise UnsupportedImageFormatError(error_msg) from e
+
             width, height = img.size
             target_ratio = 16/9
             current_ratio = width/height
@@ -686,6 +766,11 @@ class VisionAgentStillLife:
                 new_width = width
                 new_height = int(width / target_ratio)
 
+            if new_width <= 0 or new_height <= 0:
+                error_msg = f"Invalid target dimensions calculated for still life crop: {new_width}x{new_height}"
+                logging.error(f"[VisionAgentStillLife] {error_msg}")
+                raise ValueError(error_msg) # Consistent error raising
+
             # Find optimal crop window
             best_crop = self._find_optimal_crop(
                 img_size=(width, height),
@@ -693,6 +778,8 @@ class VisionAgentStillLife:
                 objects=analysis_results.get("objects", []),
                 masks=analysis_results.get("segmentation_masks", [])
             )
+            
+            os.makedirs(os.path.dirname(output_path), exist_ok=True) # Ensure output dir exists
 
             # Apply crop
             if best_crop:
@@ -700,19 +787,41 @@ class VisionAgentStillLife:
                 if cropped.mode == 'RGBA':
                     cropped = cropped.convert('RGB')
                 cropped.save(output_path, format='JPEG', quality=95)
+                logging.info(f"[VisionAgentStillLife] Saved cropped image to {output_path}")
                 return output_path
             else:
                 # Fallback to center crop
+                logging.warning("[VisionAgentStillLife] Could not determine optimal crop. Using center crop as fallback.")
                 left = (width - new_width) // 2
                 top = (height - new_height) // 2
+                right = left + new_width
+                bottom = top + new_height
+
+                if left < 0 or top < 0 or right > width or bottom > height or new_width <=0 or new_height <=0:
+                    error_msg = f"Invalid center crop dimensions for still life: L{left} T{top} R{right} B{bottom} for image {width}x{height}. Saving original."
+                    logging.error(f"[VisionAgentStillLife] {error_msg}")
+                    img_rgb = img.convert('RGB') if img.mode == 'RGBA' else img
+                    img_rgb.save(output_path, format='JPEG', quality=95)
+                    return output_path # Still return path, but it's the original
+
                 img_rgb = img.convert('RGB') if img.mode == 'RGBA' else img
-                img_rgb.crop((left, top, left + new_width, top + new_height)).save(output_path)
+                cropped_fallback = img_rgb.crop((left, top, right, bottom))
+                cropped_fallback.save(output_path, format='JPEG', quality=95)
+                logging.info(f"[VisionAgentStillLife] Saved center-cropped image to {output_path} as fallback.")
                 return output_path
 
-        except Exception as e:
-            logging.exception(f"VisionAgentGenre: Error cropping image: {e}")
-            return None
-
+        except FileNotFoundError: # Already handled by the initial Image.open try-except
+            raise
+        except (CorruptedImageError, UnsupportedImageFormatError): # Re-raise custom exceptions
+            raise
+        except IOError as e: # Catch other IOErrors during save, etc.
+            error_msg = f"IOError during still life image cropping/saving: {input_path}. Error: {e}"
+            logging.error(f"[VisionAgentStillLife] {error_msg}")
+            raise UnsupportedImageFormatError(error_msg) from e
+        except Exception as e: # General fallback
+            error_msg = f"Unexpected error cropping still life image {input_path}: {e}"
+            logging.exception(f"[VisionAgentStillLife] {error_msg}")
+            raise RuntimeError(error_msg) from e
 
     def _find_optimal_crop(self, img_size: Tuple[int, int], target_size: Tuple[int, int],
                           objects: List[Dict[str, Any]], masks: List[SegmentationMask]) -> Optional[Tuple[int, int, int, int]]:
@@ -902,6 +1011,27 @@ class VisionAgentStillLife:
                 score += adjusted_importance
 
         return score
+
+    def _think_with_grok(self, prompt: str) -> Optional[str]:
+        """
+        Internal reasoning using Grok LLM (grok-3-mini-fast-high-beta).
+        """
+        if not self.grok_client:
+            logging.warning("VisionAgentStillLife: Grok client unavailable for internal reasoning.")
+            return None
+        try:
+            response = self.grok_client.chat.completions.create(
+                messages=[{"role": "user", "content": prompt}],
+                model="grok-3-mini-fast-high-beta",
+                temperature=0.2,
+                max_tokens=256
+            )
+            reasoning = response.choices[0].message.content
+            logging.info(f"VisionAgentStillLife: Grok thinking output: {reasoning}")
+            return reasoning
+        except Exception as e:
+            logging.error(f"VisionAgentStillLife: Grok thinking failed: {e}")
+            return None
 
     # Placeholder for handoff to UpscaleAgent
     def handoff_to_upscale(self, cropped_image_path: str, upscale_queue: Queue):

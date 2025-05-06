@@ -66,7 +66,7 @@ This document outlines the plan for developing a team of AI agents to process an
 ## Implementation Roadmap
 
 1.  **Update Plan:** Add functional review and roadmap (Completed).
-2.  **Dependencies:** Update `requirements.txt` (add `google-api-python-client`, `groq`). Run `pip install`.
+2.  **Dependencies:** Update `requirements.txt` (add `google-api-python-client`, `openai` for xAI Grok). Run `pip install`.
 3.  **`ResearchAgent` Refactor:**
     *   Implement core structure (init with ID, worker loop).
     *   Add LLM (`grok-3-mini-fast-beta`) init.
@@ -105,7 +105,7 @@ This document outlines the plan for developing a team of AI agents to process an
 
 *   Python 3.12+
 *   Google Gemini API (`google-generativeai`) - Models: `gemini-2.5-flash-preview-04-17`, `gemini-2.5-pro-preview-03-25`
-*   Grok API (`groq`) - Models: `grok-2-vision-1212`, `grok-3-mini-fast-beta` (Requires integration)
+*   Grok API (`openai` for xAI Grok) - Models: `grok-2-vision-1212`, `grok-3-mini-fast-beta` (Requires integration)
 *   Pillow (PIL Fork) for image manipulation
 *   NumPy for numerical operations
 *   PyYAML for configuration
@@ -225,3 +225,21 @@ Perform upscaling (details not specified, assume basic upscale for now).
 Update main.py: Orchestrate the new workflow, initializing agents and managing the flow.
 Update requirements.txt: Add any new dependencies (e.g., web search libraries, async libraries).
 Update Tests: Adapt existing tests and create new ones for the refactored agents and workflow.
+## LLM Constraints
+
+### ResearchAgent
+- Vision Models: Fixed as specified (OpenRouter, Gemini, Grok vision models)
+- Consolidation/Communication Model: `grok-3-mini-fast-high-beta`
+
+### VisionAgents
+- Vision Analysis Model: `gemini-2.5-pro-exp-03-25`
+- Communication/Reasoning Model: `grok-3-mini-fast-high-beta`
+
+### PlacardAgent
+- Communication/Reasoning Model: `grok-3-mini-fast-high-beta`
+
+### DocentAgent
+- Communication/Reasoning Model: `grok-3-mini-fast-high-beta`
+
+### General
+- 'Thinking' functionality uses `grok-3-mini-fast-high-beta` for internal reasoning/validation across relevant agents.

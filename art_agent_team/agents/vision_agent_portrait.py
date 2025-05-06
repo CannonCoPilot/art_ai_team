@@ -4,14 +4,23 @@ import json
 import numpy as np
 import base64
 import io
-from PIL import Image, ImageDraw, ImageFont, ImageColor
+from PIL import Image, ImageDraw, ImageFont, ImageColor, UnidentifiedImageError
 import google.generativeai as genai
 from google.generativeai.types import GenerationConfig
-from groq import Groq # Import Grok client
+from openai import OpenAI  # xAI Grok API client (OpenAI-compatible)
 from dataclasses import dataclass
 from typing import List, Tuple, Optional, Dict, Any
 import math # Needed for centroid calculation
 from queue import Queue # Import Queue
+
+# Custom Exceptions for Image Processing Errors (consistent with other vision agents)
+class CorruptedImageError(Exception):
+    """Custom exception for corrupted image files."""
+    pass
+
+class UnsupportedImageFormatError(Exception):
+    """Custom exception for unsupported image formats."""
+    pass
 
 @dataclass(frozen=True)
 class SegmentationMask:
@@ -28,40 +37,41 @@ class VisionAgentPortrait:
 
     def __init__(self, config: Optional[Dict[str, Any]] = None):
         """Initialize the VisionAgentPortrait with configuration."""
-        if config is None:
-            config = {}
-        self.config = config
+        self.config = config if config is not None else {}
 
-        # self.input_folder = config.get('input_folder', 'input') # Removed hardcoded input folder
         self.output_folder = config.get('output_folder', 'output')
 
-        # Initialize Gemini models
-        google_api_key = self.config.get('google_api_key', os.environ.get('GOOGLE_API_KEY'))
-        if google_api_key:
+        # Enhanced API key retrieval with detailed error handling and fallback
+        google_api_key = config.get('google_api_key') if config and 'google_api_key' in config else os.environ.get('GOOGLE_API_KEY')
+        if not google_api_key:
+            logging.warning("[VisionAgentPortrait] WARNING: No GOOGLE_API_KEY found in config or environment variables. Gemini Pro will be unavailable. Analysis will proceed with other available models.")
+            self.gemini_pro = None
+        else:
             try:
                 genai.configure(api_key=google_api_key)
-                self.gemini_pro = genai.GenerativeModel('gemini-2.5-pro-preview-03-25')
-                logging.info("VisionAgentPortrait: Gemini Pro model initialized.")
+                # USER REQUIREMENT: Use gemini-2.5-pro-exp-03-25 for vision.
+                self.gemini_pro = genai.GenerativeModel('gemini-2.5-pro-exp-03-25')
+                logging.info("[VisionAgentPortrait] Gemini Pro model initialized.")
             except Exception as e:
-                logging.error(f"VisionAgentPortrait: Failed to initialize Gemini Pro model: {e}")
+                logging.warning(f"[VisionAgentPortrait] Failed to initialize Gemini Pro model due to missing key or other issue: {e}. Analysis will proceed without Gemini Pro.")
                 self.gemini_pro = None
-        else:
-            logging.error("VisionAgentPortrait: No Google API key found.")
-            self.gemini_pro = None
 
-        # Initialize Grok Vision model
-        grok_api_key = self.config.get('grok_api_key', os.environ.get('GROK_API_KEY'))
-        if grok_api_key:
-            try:
-                self.grok_client = Groq(api_key=grok_api_key)
-                self.grok_vision_model = "grok-2-vision-1212" # As requested
-                logging.info(f"VisionAgentPortrait: Grok Vision client initialized with model {self.grok_vision_model}.")
-            except Exception as e:
-                logging.error(f"VisionAgentPortrait: Failed to initialize Grok Vision client: {e}")
-                self.grok_client = None
-        else:
-            logging.error("VisionAgentPortrait: No Grok API key found.")
+        grok_api_key = config.get('grok_api_key') if config and 'grok_api_key' in config else os.environ.get('GROK_API_KEY')
+        if not grok_api_key:
+            logging.warning("[VisionAgentPortrait] WARNING: No GROK_API_KEY found in config or environment variables. Grok Vision will be unavailable. Analysis will proceed with other available models.")
             self.grok_client = None
+        else:
+            try:
+                from openai import OpenAI # Ensure OpenAI is imported here if not globally
+                self.grok_client = OpenAI(
+                    api_key=grok_api_key,
+                    base_url="https://api.x.ai/v1",
+                )
+                self.grok_vision_model = "grok-2-vision-1212" # Make sure this model name is correct
+                logging.info(f"[VisionAgentPortrait] Grok Vision client initialized with model {self.grok_vision_model}.")
+            except Exception as e:
+                logging.warning(f"[VisionAgentPortrait] Failed to initialize Grok Vision client due to missing key or other issue: {e}. Analysis will proceed without Grok Vision.")
+                self.grok_client = None
 
         # Colors for visualization
         self.colors = ['red', 'green', 'blue', 'yellow', 'orange', 'pink', 'purple',
@@ -79,19 +89,50 @@ class VisionAgentPortrait:
         Analyzes portrait image using Gemini Pro and Grok Vision,
         incorporating research data.
         """
+        self._think_with_grok(
+            f"Preparing to analyze portrait image at {image_path} with research data: {research_data}. "
+            "What are the key reasoning steps for optimal detection of portrait features and subject identity?"
+        )
         try:
+            # Ensure research_data is a dict to prevent AttributeError
+            if not isinstance(research_data, dict):
+                error_msg = f"research_data must be a dict, got {type(research_data)}"
+                logging.error(f"[VisionAgentPortrait] {error_msg}")
+                raise TypeError(error_msg) # Raise TypeError for incorrect data type
+
             # Store research data
             self.primary_subject = research_data.get("primary_subject")
             self.secondary_subjects = research_data.get("secondary_subjects", [])
             paragraph_description = research_data.get("paragraph_description", "")
             structured_sentence = research_data.get("structured_sentence", "")
 
-            # Load and preprocess image
-            with open(image_path, 'rb') as image_file:
-                content = image_file.read()
+            # Check for API key/model availability
+            if not self.gemini_pro and not self.grok_client:
+                error_msg = "Both Gemini Pro and Grok Vision clients are unavailable due to missing API keys."
+                logging.error(f"[VisionAgentPortrait] {error_msg}")
+                # This is a configuration/runtime error, not strictly an image processing one.
+                # A custom exception like `APIServiceUnavailableError` could be defined, or raise RuntimeError.
+                raise RuntimeError(error_msg)
 
-            img = Image.open(io.BytesIO(content))
-            # Resize for faster processing, maintain aspect ratio
+            # Load and preprocess image
+            try:
+                with open(image_path, 'rb') as image_file:
+                    content = image_file.read()
+                img = Image.open(io.BytesIO(content))
+            except FileNotFoundError as e:
+                logging.error(f"[VisionAgentPortrait] Image file not found in analyze_image: {image_path}. Error: {e}")
+                raise # Re-raise FileNotFoundError
+            except UnidentifiedImageError as e:
+                logging.error(f"[VisionAgentPortrait] Cannot identify image file (corrupted or unsupported format) in analyze_image: {image_path}. Error: {e}")
+                raise CorruptedImageError(f"Corrupted or unsupported image file: {image_path}") from e
+            except IOError as e:
+                logging.error(f"[VisionAgentPortrait] IOError opening image in analyze_image: {image_path}. Error: {e}")
+                raise UnsupportedImageFormatError(f"IOError, possibly unsupported image format: {image_path}") from e
+            except Exception as e: # Catch-all for other image loading/preprocessing issues
+                logging.error(f"[VisionAgentPortrait] Failed to load or preprocess image: {e}")
+                # This could be a more generic error or re-raise the original if it's informative
+                raise RuntimeError(f"Failed to load or preprocess image {image_path}: {e}") from e
+            
             img.thumbnail([1024, 1024], Image.Resampling.LANCZOS)
 
             # Initialize results structure
@@ -160,9 +201,9 @@ class VisionAgentPortrait:
                     gemini_results = self._parse_gemini_response(gemini_response.text)
                     if gemini_results and "objects" in gemini_results:
                         gemini_objects = gemini_results["objects"]
-                        logging.info(f"VisionAgentPortrait: Gemini Pro identified {len(gemini_objects)} objects.")
+                        logging.info(f"[VisionAgentPortrait] Gemini Pro identified {len(gemini_objects)} objects.")
                 except Exception as e:
-                    logging.error(f"VisionAgentPortrait: Error in Gemini Pro analysis: {e}")
+                    logging.error(f"[VisionAgentPortrait] Error in Gemini Pro analysis: {e}")
 
             # 2. Grok Vision Analysis
             grok_objects = []
@@ -179,15 +220,15 @@ class VisionAgentPortrait:
                     grok_results = self._parse_grok_response(grok_response.choices[0].message.content)
                     if grok_results and "objects" in grok_results:
                         grok_objects = grok_results["objects"]
-                        logging.info(f"VisionAgentPortrait: Grok Vision identified {len(grok_objects)} objects.")
+                        logging.info(f"[VisionAgentPortrait] Grok Vision identified {len(grok_objects)} objects.")
                  except Exception as e:
-                    logging.error(f"VisionAgentPortrait: Error in Grok Vision analysis: {e}")
+                    logging.error(f"[VisionAgentPortrait] Error in Grok Vision analysis: {e}")
 
 
             # --- Result Aggregation ---
             combined_objects = self._aggregate_results(gemini_objects, grok_objects)
             results["objects"] = combined_objects
-            logging.info(f"VisionAgentPortrait: Aggregated {len(results['objects'])} objects from dual models.")
+            logging.info(f"[VisionAgentPortrait] Aggregated {len(results['objects'])} objects from dual models.")
 
             # --- Post-Analysis Processing ---
 
@@ -216,7 +257,7 @@ class VisionAgentPortrait:
                  if primary_subject_label and primary_subject_label in obj.get("label", "").lower():
                       obj["importance"] = max(obj.get("importance", 0), 2 * highest_other_score)
                       obj["importance"] = min(1.0, obj["importance"])
-                      logging.info(f"VisionAgentPortrait: Boosted primary subject '{obj['label']}' importance to {obj['importance']:.2f}")
+                      logging.info(f"[VisionAgentPortrait] Boosted primary subject '{obj['label']}' importance to {obj['importance']:.2f}")
 
 
             # Create segmentation masks for important objects
@@ -230,9 +271,15 @@ class VisionAgentPortrait:
 
             return results
 
-        except Exception as e:
-            logging.exception(f"VisionAgentPortrait: Error in analyze_image: {e}")
+        except (CorruptedImageError, UnsupportedImageFormatError, FileNotFoundError, TypeError, RuntimeError) as e:
+            # Re-raise known exceptions that should halt processing
+            raise
+        except Exception as e: # Catch any other unexpected exceptions
+            logging.exception(f"[VisionAgentPortrait] Unexpected error in analyze_image: {e}")
+            # Return None or raise a generic error for truly unexpected issues
+            # For now, let's be consistent with other agents and return None for general errors
             return None
+
 
     def _aggregate_results(self, gemini_objects: List[Dict], grok_objects: List[Dict]) -> List[Dict]:
         """Aggregates and potentially merges objects from different models."""
@@ -281,11 +328,13 @@ class VisionAgentPortrait:
         primary_subject_lower = primary_subject.lower() if primary_subject else None
         secondary_subject_lowers = [sub.lower() for sub in secondary_subjects]
 
+        is_primary_subject = primary_subject_lower and (primary_subject_lower in label_lower or obj_type_lower in ['human_face', 'human_figure', 'facial_feature'])
+        
         if primary_subject_lower and (primary_subject_lower in label_lower or obj_type_lower in ['human_face', 'human_figure', 'facial_feature']):
              style_based_score *= 2.5 # Strong boost for primary subject and its features
         elif any(sub_lower in label_lower for sub_lower in secondary_subject_lowers) or obj_type_lower in ['animal_face', 'animal_figure']:
              style_based_score *= 1.5 # Moderate boost for secondary subjects and their features
-
+        
         # Add bonus for detected facial features (especially for the primary subject)
         if features:
              feature_bonus_factor = 0.1 # Base bonus per feature
@@ -334,26 +383,29 @@ class VisionAgentPortrait:
         """Save all versions of the analyzed image."""
         try:
             basename = os.path.splitext(os.path.basename(image_path))[0]
+            if not os.path.exists(image_path):
+                logging.warning(f"[VisionAgentPortrait] Image file not found for saving outputs: {image_path}")
+                return
             img = Image.open(image_path)
 
             # 1. Save labeled version (boxes only)
             labeled_path = os.path.join(output_folder, f"{basename}_labeled.jpg")
             self._save_labeled_version(img.copy(), analysis_results, labeled_path)
 
-            # 2. Save masked version (important objects only)
+            # 2. Save masked version (important objects only) - Pass full path
             masked_path = os.path.join(output_folder, f"{basename}_masked.jpg")
-            self._save_masked_version(img.copy(), analysis_results, masked_path)
+            self._save_masked_version(img.copy(), analysis_results, masked_path) # Pass full path
 
             # 3. Save cropped version
             cropped_path = os.path.join(output_folder, f"{basename}_cropped.jpg")
             self.copy_and_crop_image(image_path, cropped_path, analysis_results)
 
-            logging.info(f"VisionAgentPortrait: Saved all analysis outputs for {basename}")
+            logging.info(f"[VisionAgentPortrait] Saved all analysis outputs for {basename}")
 
             # TODO: Handoff cropped_path to UpscaleAgent queue
 
         except Exception as e:
-            logging.exception(f"VisionAgentPortrait: Error saving analysis outputs: {e}")
+            logging.exception(f"[VisionAgentPortrait] Error saving analysis outputs: {e}")
 
 
     def _save_labeled_version(self, img: Image.Image, analysis_results: Dict[str, Any], output_path: str) -> None:
@@ -369,10 +421,10 @@ class VisionAgentPortrait:
             for i, obj in enumerate(analysis_results.get("objects", [])):
                 obj_type = obj.get("type", "").lower()
                 color = self.colors[i % len(self.colors)]
-                box = obj["box_2d"]
+                box = obj.get("box_2d", [0,0,0,0])
 
                 # Get raw coordinates from model
-                raw_box = obj["box_2d"]  # [y0, x0, y1, x1]
+                raw_box = obj.get("box_2d", [0,0,0,0])  # [y0, x0, y1, x1]
 
                 # Convert to image coordinates without adjustments
                 x0 = int(raw_box[1] * width / 1000)
@@ -397,7 +449,7 @@ class VisionAgentPortrait:
 
                 # Draw object label with raw coordinates for debugging
                 label_parts = [
-                    f"{obj['label']} ({obj.get('importance', 0):.2f})",
+                    f"{obj.get('label', '')} ({obj.get('importance', 0):.2f})",
                     f"Type: {obj.get('type', 'unknown')}",
                     f"Raw coords: [{raw_box[0]:.0f}, {raw_box[1]:.0f}, {raw_box[2]:.0f}, {raw_box[3]:.0f}]"
                 ]
@@ -554,12 +606,13 @@ class VisionAgentPortrait:
             img.save(output_path, format='JPEG', quality=95)
 
         except Exception as e:
-            logging.exception(f"Error saving labeled version: {e}")
+            logging.exception(f"[VisionAgentPortrait] Error saving labeled version: {e}")
 
 
-    def _save_masked_version(self, img: Image.Image, analysis_results: Dict[str, Any], output_folder: str) -> None:
+    def _save_masked_version(self, img: Image.Image, analysis_results: Dict[str, Any], output_path: str) -> None: # Corrected signature
         """Save version with masks for important objects only."""
         try:
+            logging.info(f"[VisionAgentPortrait] Saving masked version to: {output_path}")
             width, height = img.size
 
             # Get important objects
@@ -576,10 +629,22 @@ class VisionAgentPortrait:
             # Save in RGB mode
             if img.mode == 'RGBA':
                 img = img.convert('RGB')
+
+            # Ensure output directory exists
+            os.makedirs(os.path.dirname(output_path), exist_ok=True)
+
+            # Save the image (PIL's save typically overwrites)
+            # Log path details before saving for diagnostics
+            dir_path = os.path.dirname(output_path)
+            logging.debug(f"[VisionAgentPortrait] Attempting to save masked image to: {output_path}")
+            logging.debug(f"[VisionAgentPortrait] Directory exists check for {dir_path}: {os.path.isdir(dir_path)}")
+            
             img.save(output_path, format='JPEG', quality=95)
+            logging.info(f"[VisionAgentPortrait] Successfully saved masked image to {output_path}")
 
         except Exception as e:
-            logging.exception(f"Error saving masked version: {e}")
+            # General exception handling for saving issues (e.g., permissions, disk full)
+            logging.exception(f"[VisionAgentPortrait] Error saving masked version to {output_path}: {e}")
 
 
     def _parse_gemini_response(self, response_text: str) -> Optional[Dict]:
@@ -594,8 +659,8 @@ class VisionAgentPortrait:
 
             return json.loads(json_str)
         except Exception as e:
-            logging.error(f"Failed to parse Gemini response: {e}")
-            logging.debug(f"Raw response text: {response_text}")
+            logging.error(f"[VisionAgentPortrait] Failed to parse Gemini response: {e}")
+            # logging.debug(f"[VisionAgentPortrait] Raw response text removed for security.")
             return None
 
     def _parse_grok_response(self, response_text: str) -> Optional[Dict]:
@@ -610,8 +675,8 @@ class VisionAgentPortrait:
 
             return json.loads(json_str)
         except Exception as e:
-            logging.error(f"Failed to parse Grok response: {e}")
-            logging.debug(f"Raw response text: {response_text}")
+            logging.error(f"[VisionAgentPortrait] Failed to parse Grok response: {e}")
+            # logging.debug(f"[VisionAgentPortrait] Raw response text removed for security.")
             return None
 
 
@@ -645,7 +710,7 @@ class VisionAgentPortrait:
                         label=det["label"]
                     ))
             except Exception as e:
-                logging.warning(f"Failed to create mask for {det.get('label', 'unknown')}: {e}")
+                logging.warning(f"[VisionAgentPortrait] Failed to create mask for {det.get('label', 'unknown')}: {e}")
                 continue
 
         return masks
@@ -675,14 +740,33 @@ class VisionAgentPortrait:
             return Image.alpha_composite(img.convert('RGBA'), overlay)
 
         except Exception as e:
-            logging.warning(f"Failed to overlay mask: {e}", exc_info=True)
+            logging.warning(f"[VisionAgentPortrait] Failed to overlay mask: {e}", exc_info=True)
             return img
 
 
-    def copy_and_crop_image(self, input_path: str, output_path: str, analysis_results: Dict[str, Any]) -> Optional[str]:
-        """Intelligently crop image based on object detection results."""
+    def copy_and_crop_image(self, input_path: str, output_path: str, analysis_results: Dict[str, Any]) -> str:
+        """
+        Intelligently crop image based on object detection results.
+        Returns the output_path (str) on success.
+        Raises CorruptedImageError, UnsupportedImageFormatError, or FileNotFoundError on failure.
+        """
         try:
-            img = Image.open(input_path)
+            # Attempt to open the image first to catch format/corruption errors early
+            try:
+                img = Image.open(input_path)
+            except UnidentifiedImageError as e:
+                error_msg = f"Cannot identify image file (corrupted or unsupported format) for portrait: {input_path}. Error: {e}"
+                logging.error(f"[VisionAgentPortrait] {error_msg}")
+                raise CorruptedImageError(error_msg) from e
+            except FileNotFoundError as e:
+                error_msg = f"Input file not found for portrait cropping: {input_path}. Error: {e}"
+                logging.error(f"[VisionAgentPortrait] {error_msg}")
+                raise
+            except IOError as e:
+                error_msg = f"IOError opening image for portrait cropping (possibly unsupported format): {input_path}. Error: {e}"
+                logging.error(f"[VisionAgentPortrait] {error_msg}")
+                raise UnsupportedImageFormatError(error_msg) from e
+
             width, height = img.size
             target_ratio = 16/9
             current_ratio = width/height
@@ -695,6 +779,11 @@ class VisionAgentPortrait:
                 new_width = width
                 new_height = int(width / target_ratio)
 
+            if new_width <= 0 or new_height <= 0:
+                error_msg = f"Invalid target dimensions calculated for portrait crop: {new_width}x{new_height}"
+                logging.error(f"[VisionAgentPortrait] {error_msg}")
+                raise ValueError(error_msg)
+
             # Find optimal crop window
             best_crop = self._find_optimal_crop(
                 img_size=(width, height),
@@ -702,6 +791,8 @@ class VisionAgentPortrait:
                 objects=analysis_results.get("objects", []),
                 masks=analysis_results.get("segmentation_masks", [])
             )
+            
+            os.makedirs(os.path.dirname(output_path), exist_ok=True) # Ensure output dir exists
 
             # Apply crop
             if best_crop:
@@ -709,19 +800,41 @@ class VisionAgentPortrait:
                 if cropped.mode == 'RGBA':
                     cropped = cropped.convert('RGB')
                 cropped.save(output_path, format='JPEG', quality=95)
+                logging.info(f"[VisionAgentPortrait] Saved cropped image to {output_path}")
                 return output_path
             else:
                 # Fallback to center crop
+                logging.warning("[VisionAgentPortrait] Could not determine optimal crop. Using center crop as fallback.")
                 left = (width - new_width) // 2
                 top = (height - new_height) // 2
+                right = left + new_width
+                bottom = top + new_height
+
+                if left < 0 or top < 0 or right > width or bottom > height or new_width <= 0 or new_height <= 0:
+                    error_msg = f"Invalid center crop dimensions for portrait: L{left} T{top} R{right} B{bottom} for image {width}x{height}. Saving original."
+                    logging.error(f"[VisionAgentPortrait] {error_msg}")
+                    img_rgb = img.convert('RGB') if img.mode == 'RGBA' else img
+                    img_rgb.save(output_path, format='JPEG', quality=95)
+                    return output_path # Still return path, but it's the original
+
                 img_rgb = img.convert('RGB') if img.mode == 'RGBA' else img
-                img_rgb.crop((left, top, left + new_width, top + new_height)).save(output_path)
+                cropped_fallback = img_rgb.crop((left, top, right, bottom))
+                cropped_fallback.save(output_path, format='JPEG', quality=95)
+                logging.info(f"[VisionAgentPortrait] Saved center-cropped image to {output_path} as fallback.")
                 return output_path
 
-        except Exception as e:
-            logging.exception(f"VisionAgentGenre: Error cropping image: {e}")
-            return None
-
+        except FileNotFoundError: # Already handled by the initial Image.open try-except
+            raise
+        except (CorruptedImageError, UnsupportedImageFormatError): # Re-raise custom exceptions
+            raise
+        except IOError as e: # Catch other IOErrors during save, etc.
+            error_msg = f"IOError during portrait image cropping/saving: {input_path}. Error: {e}"
+            logging.error(f"[VisionAgentPortrait] {error_msg}")
+            raise UnsupportedImageFormatError(error_msg) from e
+        except Exception as e: # General fallback
+            error_msg = f"Unexpected error cropping portrait image {input_path}: {e}"
+            logging.exception(f"[VisionAgentPortrait] {error_msg}")
+            raise RuntimeError(error_msg) from e
 
     def _find_optimal_crop(self, img_size: Tuple[int, int], target_size: Tuple[int, int],
                           objects: List[Dict[str, Any]], masks: List[SegmentationMask]) -> Optional[Tuple[int, int, int, int]]:
@@ -819,7 +932,7 @@ class VisionAgentPortrait:
              new_top = max(0, new_top)
 
              adjusted_crop = (new_left, new_top, new_left + target_width, new_top + target_height)
-             logging.info(f"VisionAgentGenre: Refined crop to center on primary subject: {adjusted_crop}")
+             logging.info(f"[VisionAgentPortrait] Refined crop to center on primary subject: {adjusted_crop}")
              return adjusted_crop
 
         # If no primary subject or complex contextual action, fallback to original best crop
@@ -912,10 +1025,31 @@ class VisionAgentPortrait:
 
         return score
 
+    def _think_with_grok(self, prompt: str) -> Optional[str]:
+        """
+        Internal reasoning using Grok LLM (grok-3-mini-fast-high-beta).
+        """
+        if not self.grok_client:
+            logging.warning("VisionAgentPortrait: Grok client unavailable for internal reasoning.")
+            return None
+        try:
+            response = self.grok_client.chat.completions.create(
+                messages=[{"role": "user", "content": prompt}],
+                model="grok-3-mini-fast-high-beta",
+                temperature=0.2,
+                max_tokens=256
+            )
+            reasoning = response.choices[0].message.content
+            logging.info(f"VisionAgentPortrait: Grok thinking output: {reasoning}")
+            return reasoning
+        except Exception as e:
+            logging.error(f"VisionAgentPortrait: Grok thinking failed: {e}")
+            return None
+
     # Placeholder for handoff to UpscaleAgent
     def handoff_to_upscale(self, cropped_image_path: str, upscale_queue: Queue):
         """Places the cropped image path onto the upscale queue."""
-        logging.info(f"VisionAgentGenre: Handoff {os.path.basename(cropped_image_path)} to UpscaleAgent queue.")
+        logging.info(f"[VisionAgentPortrait] Handoff {os.path.basename(cropped_image_path)} to UpscaleAgent queue.")
         upscale_queue.put(cropped_image_path)
 
 
