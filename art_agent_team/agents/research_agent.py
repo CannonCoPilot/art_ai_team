@@ -31,19 +31,9 @@ except ImportError:
 # Predefined Styles List (as per requirements) - Updated with art movements from movements.txt
 PREDEFINED_STYLES = [
     "landscape", "portrait", "surrealist", "genre-scene", "animal", "religious",
-    "historical", "still life", "abstract",
-    # Art movements from movements.txt (cleaned of dates/regions)
-    "Renaissance", "Mannerism", "Baroque", "Dutch Golden Age", "Rococo",
-    "Neoclassicism", "Romanticism", "Realism", "Pre-Raphaelite Brotherhood",
-    "Barbizon School", "Hudson River School", "Luminism", "Academic Art",
-    "Impressionism", "Post-Impressionism", "Symbolism", "Naturalism", "Art Nouveau",
-    "Fauvism", "Expressionism", "Cubism", "Futurism", "Dadaism", "Constructivism",
-    "Fauvism", "Expressionism", "Cubism", "Futurism", "Dadaism", "Constructivism",
-    "Precisionism", "Bauhaus", "Surrealism", "De Stijl", "New Objectivity",
-    "Harlem Renaissance", "Art Deco", "Abstract Expressionism", "Color Field Painting",
-    "Action Painting", "Hard-Edge Painting", "Pop Art", "Op Art", "Minimalism",
-    "Photorealism", "Pop Surrealism", "Arte Povera", "Neo-Expressionism", "Street Art",
-    "Contemporary Art"
+    "historical", "still life", "abstract"
+    # Art movements have been removed from this list to ensure clear separation
+    # between style and movement. Movements are now handled exclusively via movements.txt.
 ]
 
 def _is_supported_google_genai_content_type(obj):
@@ -299,58 +289,98 @@ class PromptTemplate:
     """Manages master and model-specific prompt generation."""
     def __init__(self):
         self.predefined_styles = PREDEFINED_STYLES # Use constant defined above
-        self.movement_list_str = self._load_movement_list()
+        
+        self.movements_data_dict: Dict[str, str] = {}
+        self.movement_names_list: List[str] = []
+        self.movement_list_for_prompt_str: str = ""
+        self._load_movements_data() # Load and parse movements.txt
+
         self.master_template = self._load_master_template()
         self.consolidation_template = self._load_consolidation_template()
 
-    def _load_movement_list(self) -> str:
-        """Reads the movement list from input/movements.txt and returns as a formatted string."""
+    def _load_movements_data(self) -> None:
+        """
+        Reads the movement list from input/movements.txt, parses it into a dictionary
+        (name -> details with date), a list of names, and a formatted string for prompts.
+        """
+        movements_dict = {}
+        movement_lines_for_prompt = []
         try:
+            # Assuming input/movements.txt is relative to the execution directory
+            # Consider making this path configurable or more robust if issues arise
             with open("input/movements.txt", "r", encoding="utf-8") as f:
-                lines = [line.strip() for line in f if line.strip()]
-            return "\n".join(f"* {line}" for line in lines)
+                for line in f:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    match = re.match(r"^(.*?)\\s*\\((.*)\\)$", line)
+                    if match:
+                        name, details = match.groups()
+                        movements_dict[name.strip()] = details.strip()
+                        movement_lines_for_prompt.append(f"* {name.strip()} ({details.strip()})")
+                    else:
+                        # Handle lines that might not fit the expected "Name (Details)" format,
+                        # though movements.txt is expected to follow this.
+                        # For now, we'll just use the line as a name if no parentheses.
+                        if '(' not in line and ')' not in line: # Simple check
+                             movements_dict[line] = "" # No details
+                             movement_lines_for_prompt.append(f"* {line}")
+                        else:
+                             logging.warning(f"[PromptTemplate] Could not parse movement line: {line}")
+            
+            self.movements_data_dict = movements_dict
+            self.movement_names_list = list(movements_dict.keys())
+            self.movement_list_for_prompt_str = "\\n".join(movement_lines_for_prompt)
+            logging.info(f"[PromptTemplate] Loaded {len(self.movements_data_dict)} movements from movements.txt.")
+
         except Exception as e:
-            logging.error(f"[PromptTemplate] Failed to load movement list: {e}")
-            # Fallback to empty string
-            return ""
+            logging.error(f"[PromptTemplate] Failed to load or parse movement list: {e}")
+            # Fallback to empty structures
+            self.movements_data_dict = {}
+            self.movement_names_list = []
+            self.movement_list_for_prompt_str = ""
 
     def _load_master_template(self) -> str:
         """Loads the finalized master vision prompt from Prompt Design Specifications."""
-        style_list = ", ".join(self.predefined_styles)
+        style_list_str = ", ".join(self.predefined_styles)
+        # Use self.movement_list_for_prompt_str which is already formatted
         return (
-            "Analyze the image and filename tokens provided. Extract the following fields:\n"
-            "1. author\n"
-            "2. title\n"
-            "3. date\n"
-            "4. nationality\n"
-            f"5. style (from the predefined list: {style_list})\n"
-            "6. movement (from the predefined list: \n"
-            f"{self.movement_list_str}\n"
-            ")\n"
-            "7. primary_subjects\n"
-            "8. secondary_subjects\n"
-            "9. brief_description\n"
-            "10. confidence_score\n"
-            "11. grounding_used\n"
-            "12. limitations\n"
-            "\n"
-            "Validate the identified 'date' against the time range associated with the identified 'movement' from the provided list. Ensure the date falls within the movement's time range.\n"
-            "\n"
-            "Output the results in JSON format only.\n"
-            "\n"
-            "Additional instructions for the model: {model_specific_instructions}\n"
-            "\n"
-            "Filename tokens: {filename_tokens}\n"
+            "Analyze the image and filename tokens provided. Extract the following fields:\\n"
+            "1. author\\n"
+            "2. title\\n"
+            "3. date\\n"
+            "4. nationality\\n"
+            f"5. style (from the predefined list: {style_list_str})\\n"
+            "6. movement (from the predefined list below, including their typical date ranges):\\n" # Clarified instruction
+            f"{self.movement_list_for_prompt_str}\\n"
+            ")\\n"
+            "7. primary_subjects\\n"
+            "8. secondary_subjects\\n"
+            "9. brief_description\\n"
+            "10. confidence_score\\n"
+            "11. grounding_used\\n"
+            "12. limitations\\n"
+            "\\n"
+            "Validate the identified 'date' against the time range associated with the identified 'movement' from the provided list. Ensure the date falls within the movement's time range.\\n"
+            "\\n"
+            "Output the results in JSON format only.\\n"
+            "\\n"
+            "Additional instructions for the model: {model_specific_instructions}\\n"
+            "\\n"
+            "Filename tokens: {filename_tokens}\\n"
         )
 
     def _load_consolidation_template(self) -> str:
         """Loads the finalized consolidation prompt from Prompt Design Specifications."""
+        # Use self.movement_list_for_prompt_str which is already formatted
         return (
-            "Consolidate the results from multiple vision models provided as a JSON string. Reference the 'movement' field and use the provided movement list (\n"
-            f"{self.movement_list_str}\n"
-            ") to validate the consolidated 'date' against the consolidated 'movement''s time range. If there are conflicts or low confidence, choose the most plausible movement.\n"
-            "\n"
-            "Output the consolidated results in JSON format only.\n"
+            "Consolidate the results from multiple vision models provided as a JSON string. "
+            "Reference the 'movement' field and use the provided movement list (including their typical date ranges) below to validate "
+            "the consolidated 'date' against the consolidated 'movement'\\'s time range. "
+            "If there are conflicts or low confidence, choose the most plausible movement.\\n"
+            f"{self.movement_list_for_prompt_str}\\n"
+            "\\n"
+            "Output the consolidated results in JSON format only.\\n"
         )
     def get_vision_prompt(self, model_name: str, filename_tokens: str) -> str:
         """
@@ -364,12 +394,14 @@ class PromptTemplate:
             filename_tokens = ""
         model_specific_instructions = f"Note: This analysis is being performed by vision model {model_name}."
         if "gemini" in model_name.lower() or "grok" in model_name.lower():
-            model_specific_instructions += "\nPlease utilize web search grounding or internal knowledge if available to improve accuracy."
+            model_specific_instructions += "\\nPlease utilize web search grounding or internal knowledge if available to improve accuracy."
         if "qwen" in model_name.lower():
-            model_specific_instructions += "\nProvide detailed analysis based on the image."
+            model_specific_instructions += "\\nProvide detailed analysis based on the image."
+        
+        # The master_template is already formatted with the necessary lists in its definition
         prompt = self.master_template.format(
-            style_list=", ".join(self.predefined_styles),
-            movement_list=self.movement_list_str,
+            # style_list is embedded via style_list_str in _load_master_template
+            # movement_list is embedded via self.movement_list_for_prompt_str in _load_master_template
             filename_tokens=filename_tokens,
             model_specific_instructions=model_specific_instructions
         )
@@ -378,8 +410,8 @@ class PromptTemplate:
     def get_consolidation_prompt(self, results_json_string: str) -> str:
         """Creates the prompt for the consolidation model using the finalized template."""
         return (
-            f"{self.consolidation_template}\n"
-            f"Input Data (JSON string containing results from various models):\n{results_json_string}\n"
+            f"{self.consolidation_template}\\n"
+            f"Input Data (JSON string containing results from various models):\\n{results_json_string}\\n"
         )
 
 # --- Main Research Agent Class (Refactored) ---
@@ -476,52 +508,65 @@ class ResearchAgent:
 
         # Run unified research as before
         research_output = self.unified_research(image_path)
-        consolidated_results = research_output.get("consolidated_results", {})
+        consolidated_results = research_output.get("consolidated_results", {}) # Ensure this key matches actual output
+        if not consolidated_results and "consolidated_findings" in research_output: # Check for new key
+            consolidated_results = research_output.get("consolidated_findings", {})
+
         style = consolidated_results.get("style", "unknown")
         movement = consolidated_results.get("movement", None)
         date = consolidated_results.get("date", None)
 
-        # Load movement list from file
-        try:
-            with open("input/movements.txt", "r", encoding="utf-8") as f:
-                movement_list = [line.strip() for line in f if line.strip()]
-        except Exception as e:
-            logging.error(f"[ResearchAgent] Failed to load movement list for categorize_artwork: {e}")
-            movement_list = []
+        # Use the movement list string directly from PromptTemplate
+        # This string is already formatted as "* Movement Name (Details)\\n..."
+        movement_list_for_grok_prompt = self.prompt_template.movement_list_for_prompt_str
+        
+        # Also get the plain list of movement names for parsing Grok's response
+        valid_movement_names = self.prompt_template.movement_names_list
 
         # Compose prompt for Grok to check movement/date consistency
         grok_prompt = (
-            f"Given the following artwork metadata:\n"
-            f"- Date: {date}\n"
-            f"- Movement: {movement}\n"
-            f"Here is a list of recognized art movements and their time ranges:\n"
-            + "\n".join(f"* {m}" for m in movement_list) +
-            "\n\n"
+            f"Given the following artwork metadata:\\n"
+            f"- Date: {date}\\n"
+            f"- Movement: {movement}\\n"
+            f"Here is a list of recognized art movements and their time ranges:\\n"
+            f"{movement_list_for_grok_prompt}\\n" # Use the formatted list from PromptTemplate
+            "\\n\\n"
             "Analyze whether the provided date fits the movement's time range. "
             "If not, suggest the most appropriate movement from the list above based on the date. "
             "Return only the final movement string (from the list above) that best fits the date, or the original movement if it is consistent."
         )
 
         grok_response = self._think_with_grok(grok_prompt)
-        # Parse Grok's response: expect a single movement string (may need to clean up)
-        final_movement = None
+        final_movement = movement # Default to original movement
+
         if grok_response:
-            # Try to extract a movement from the response by matching to the movement list
-            grok_response_clean = grok_response.strip()
-            for m in movement_list:
-                if m.lower() in grok_response_clean.lower():
-                    final_movement = m
-                    break
-            if not final_movement:
-                # fallback: use original movement if Grok's response is unclear
-                final_movement = movement
+            grok_response_clean = grok_response.strip().lower()
+            # Try to find a direct match from the valid movement names in Grok's response
+            # This makes parsing more robust by checking against known movement names.
+            best_match = None
+            for m_name in valid_movement_names:
+                if m_name.lower() in grok_response_clean:
+                    # Simple substring check. Could be improved with fuzzy matching if needed.
+                    if best_match is None or len(m_name) > len(best_match): # Prefer longer match if multiple
+                        best_match = m_name
+            
+            if best_match:
+                final_movement = best_match
+                logging.info(f"[ResearchAgent] Grok refined movement to: {final_movement} based on response: '{grok_response_clean}'")
+            else:
+                logging.warning(f"[ResearchAgent] Could not clearly extract a movement from Grok's response: '{grok_response_clean}'. Using original: {movement}")
         else:
-            final_movement = movement
+            logging.warning(f"[ResearchAgent] Grok response was empty for movement refinement. Using original: {movement}")
+
 
         # Update consolidated_results with the final movement
-        consolidated_results["movement"] = final_movement
-
-        # Return the chosen style string as before (for DocentAgent compatibility)
+        # This assumes consolidated_results is a mutable dictionary that might be used later.
+        # If research_output is what's returned and used, update it there.
+        # For now, let's assume consolidated_results is the primary dict to update.
+        if isinstance(consolidated_results, dict):
+            consolidated_results["movement"] = final_movement
+        
+        # The method is expected to return the 'style' string
         return style
 
     # --- Core Unified Workflow ---
@@ -1190,134 +1235,5 @@ class ResearchAgent:
                      data[key] = None
                  elif value.strip() not in self.prompt_template.predefined_styles:
                      logging.warning(f"{tag} Style '{value}' provided by model is not in the predefined list {self.prompt_template.predefined_styles}. Keeping it for consolidation but flagging.")
-    def _censor_response_text(self, text: Optional[str]) -> Optional[str]:
-        """Replaces base64 image data URIs in a string with a placeholder."""
-        if text is None:
-            return None
-        # Regex to find sequences of 20+ characters likely representing binary data.
-        # This looks for characters that are NOT typical text characters (word chars, whitespace, common ASCII punctuation/symbols)
-        # OR are octal (\177) or hex (\x7F) escape sequences.
-        pattern = r'(?:[^\w\s!"#$%&\'()*+,-./:;<=>?@[\\\]^_`{|}~]|\\[0-7]{1,3}|\\[xX][0-9a-fA-F]{2}){20,}'
-        # Replace the matched likely binary sequence
-        try:
-            # Limit the length of text processed to avoid excessive memory/time on huge strings
-            processed_text = text[:500] # Process first 500 chars, adjust if needed
-            censored_text = re.sub(pattern, r"<binary_data>", processed_text)
-            # If original text was longer, append an indicator
-            if len(text) > 500:
-                 censored_text += "... [response truncated]"
-            return censored_text
-        except Exception as e:
-            logging.warning(f"[ResearchAgent {getattr(self, 'agent_id', 'N/A')}][_censor_response_text] Error during censoring: {e}")
-            # Fallback: return a simple placeholder if censoring fails
-            return "<Error during response censoring>"
- 
-    # Note: _censor_response_text helper added above.
-    def _consolidate_results(self, individual_results: Dict[str, Dict], image_path: str) -> Dict[str, Any]:
-        """Consolidates results from individual model calls using the consolidation LLM."""
-        tag = f"[ResearchAgent {self.agent_id}][Consolidation]"
-
-        # Filter out results that have critical errors before sending to consolidation model
-        valid_results_for_consolidation = {}
-        successful_calls = 0
-        for model_name, result_data in individual_results.items():
-             # Check if the result is a dict and doesn't have a top-level error key indicating total failure
-             if isinstance(result_data, dict) and "error" not in result_data:
-                 # --- Pre-consolidation Validation ---
-                 # Perform a quick check using _ensure_standard_fields logic (or a subset)
-                 # to ensure the structure is somewhat reasonable before sending.
-                 # This prevents sending completely malformed data to the consolidation LLM.
-                 temp_data = result_data.copy() # Validate on a copy
-                 try:
-                     self._ensure_standard_fields(temp_data, f"{model_name}_pre_consolidation") # Run validation
-                     # Add any other critical structure checks here if needed
-                     valid_results_for_consolidation[model_name] = result_data # Use original data for consolidation prompt
-                     successful_calls += 1
-                 except Exception as validation_e:
-                      logging.warning(f"{tag} Excluding result from {model_name} due to pre-consolidation validation error: {validation_e}", exc_info=False)
-                      # Continue to next iteration instead of just logging
-                      continue
-             elif isinstance(result_data, dict):
-                 logging.warning(f"{tag} Excluding result from {model_name} due to error: {result_data.get('error')}")
-             else:
-                 logging.warning(f"{tag} Excluding result from {model_name} due to unexpected format: {type(result_data)}")
-
-
-        if successful_calls == 0:
-            logging.error(f"{tag} No successful individual model results to consolidate.")
-            return self._create_error_json("No successful individual model results available for consolidation.")
-
-        logging.info(f"{tag} Consolidating results from {successful_calls} successful model calls using {CONSOLIDATION_MODEL}.")
-
-        try:
-            # Serialize the validated results dictionary to a JSON string for the prompt
-            results_json_string = json.dumps(valid_results_for_consolidation, indent=2)
-        except TypeError as e:
-            logging.error(f"{tag} Failed to serialize validated individual results to JSON: {e}", exc_info=True)
-            return self._create_error_json(f"Failed to serialize results for consolidation prompt: {e}")
-
-        # Get the consolidation prompt
-        consolidation_prompt = self.prompt_template.get_consolidation_prompt(results_json_string)
-
-        # Get the client for the consolidation model
-        consolidation_client = self.model_registry.get_client_for_model(CONSOLIDATION_MODEL)
-        if not consolidation_client:
-             logging.error(f"{tag} Consolidation model client ({CONSOLIDATION_MODEL}) unavailable.")
-             return self._create_error_json(f"Consolidation model client ({CONSOLIDATION_MODEL}) unavailable.")
-
-        # Prepare content for the consolidation model (assuming OpenAI API format)
-        consolidation_content = [{"role": "user", "content": consolidation_prompt}]
-
-        # Call the consolidation model (using retry wrapper for robustness)
-        consolidation_result = self._make_llm_call_with_retry(
-            client=consolidation_client,
-            model_name=CONSOLIDATION_MODEL,
-            image_path=image_path,
-            content=consolidation_content,
-            is_json_output=True,
-            max_tokens=4000, # Increased from 2500
-            temperature=0.1 # Lower temperature for more deterministic consolidation
-        )
-
-        # Final check on the consolidated result
-        if isinstance(consolidation_result, dict) and "error" not in consolidation_result:
-            logging.info(f"{tag} Consolidation successful. Final Confidence: {consolidation_result.get('confidence_score')}")
-            # Final validation on style against predefined list
-            final_style = consolidation_result.get("style")
-            if final_style and final_style not in self.prompt_template.predefined_styles:
-                 logging.warning(f"{tag} Consolidated style '{final_style}' is not in the predefined list. Consider revising consolidation prompt or accepting model's best effort.")
-                 # Keep the style for now, but it's flagged. Could enforce null here if strict adherence is required.
-                 # consolidation_result["style"] = None # Uncomment to enforce null if style not in list
-            return consolidation_result
-        elif isinstance(consolidation_result, dict):
-            logging.error(f"{tag} Consolidation call failed or returned error: {consolidation_result.get('error')}")
-            # Return the error dict from the consolidation call (it should have standard fields)
-            return consolidation_result
-        else:
-            # Should be unlikely if _make_llm_call_with_retry works correctly
-            logging.error(f"{tag} Consolidation returned unexpected format: {type(consolidation_result)}")
-            return self._create_error_json("Consolidation failed due to unexpected response format.")
-
-    # --- File Handling Methods (Retained for basic checks) ---
-    # Note: These are now called within _preprocess_input
-    def handle_unsupported_format(self, image_path: str) -> None:
-        """Raises ValueError if the file extension is not recognized/supported."""
-        mime_type = self._get_mime_type(image_path)
-        if mime_type == 'application/octet-stream':
-            ext = os.path.splitext(image_path)[1].lower()
-            logging.error(f"[ResearchAgent {self.agent_id}] Unsupported file format {ext} for {os.path.basename(image_path)}")
-            raise ValueError(f"Unsupported file format: {ext}")
-
-    def handle_corrupted_file(self, image_path: str) -> None:
-        """Raises Exception for basic file existence and non-empty checks."""
-        if not os.path.exists(image_path):
-             logging.error(f"[ResearchAgent {self.agent_id}] File not found: {image_path}")
-             raise FileNotFoundError(f"Image file not found: {image_path}")
-        if os.path.getsize(image_path) == 0:
-            logging.error(f"[ResearchAgent {self.agent_id}] Empty file detected: {image_path}")
-            raise ValueError(f"Empty file detected: {image_path}")
-        # Deeper corruption checks (like PIL verify) could be added but might be slow
-        # and errors might be caught during base64 encoding or LLM processing anyway.
-
-# Note: This class is intended to be used within a larger workflow (e.g., DocentAgent).
-# The main entry point for research is now the `unified_research` method.
+                     # Keep the style for now, but it's flagged. Could enforce null here if strict adherence is required.
+                     # data[key] = None # Uncomment to enforce null if style not in list

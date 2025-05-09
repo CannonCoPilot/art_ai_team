@@ -5,9 +5,11 @@ import numpy as np
 import base64
 import io
 from PIL import Image, ImageDraw, ImageFont, ImageColor, UnidentifiedImageError
-import google.generativeai as genai
-from google.generativeai.types import GenerationConfig
-from openai import OpenAI  # xAI Grok API client (OpenAI-compatible)
+import vertexai # Added for Vertex AI
+from vertexai.preview import generative_models as vertex_generative_models # Added for Vertex AI
+from vertexai.preview.generative_models import Part, Image as VertexImage, GenerationConfig as VertexGenerationConfig, HarmCategory, HarmBlockThreshold # Added for Vertex AI
+
+from openai import OpenAI # xAI Grok API client (OpenAI-compatible)
 from dataclasses import dataclass
 from typing import List, Tuple, Optional, Dict, Any
 import math # Needed for centroid calculation
@@ -41,12 +43,14 @@ class VisionAgentAbstract:
         This method sends the agent's reasoning or validation prompt to the Grok model and returns the response.
         """
         from openai import OpenAI
-        api_key = self.config.get("OPENAI_API_KEY") or os.environ.get("OPENAI_API_KEY")
+        # Use GROK_API_KEY for the Grok client
+        api_key = self.config.get("GROK_API_KEY") or os.environ.get("GROK_API_KEY")
         if not api_key:
-            logging.warning("[VisionAgentAbstract] No OPENAI_API_KEY found for Grok thinking step.")
+            logging.warning("[VisionAgentAbstract] No GROK_API_KEY found for Grok thinking step.")
             return ""
         try:
-            client = OpenAI(api_key=api_key)
+            # Ensure the client is initialized with the correct base_url for Grok
+            client = OpenAI(api_key=api_key, base_url="https://api.x.ai/v1")
             response = client.chat.completions.create(
                 model="grok-3-mini-fast-high-beta",
                 messages=[{"role": "system", "content": "You are an expert vision analysis agent reasoning about your next step."},
@@ -65,24 +69,55 @@ class VisionAgentAbstract:
             config = {}
         self.config = config
 
-        # self.input_folder = config.get('input_folder', 'input') # Removed hardcoded input folder
         self.output_folder = config.get('output_folder', 'output')
 
-        # Initialize Gemini models
-        # Enhanced API key retrieval with detailed error handling and fallback
-        google_api_key = config.get('google_api_key') if config and 'google_api_key' in config else os.environ.get('GOOGLE_API_KEY')
-        if not google_api_key:
-            logging.error("VisionAgentAbstract: No GOOGLE_API_KEY found in config or environment variables. Gemini Pro will be unavailable. Reference log index [2025-04-30_VisionAbstractImplementation] for details.")
-            self.gemini_pro = None
-        else:
-            try:
-                genai.configure(api_key=google_api_key)
+        # Initialize Vertex AI Gemini model (replaces google.generativeai client)
+        self.gemini_vertex_model = None 
+        try:
+            project_id = self.config.get('vertex_project_id') or os.environ.get('VERTEX_PROJECT_ID')
+            location = self.config.get('vertex_location') or os.environ.get('VERTEX_LOCATION')
+
+            if not project_id:
+                logging.warning("VisionAgentAbstract: vertex_project_id not set in config or environment. Vertex AI Gemini model unavailable.")
+            elif not location:
+                logging.warning("VisionAgentAbstract: vertex_location not set in config or environment. Vertex AI Gemini model unavailable.")
+            else:
+                # Handle GOOGLE_APPLICATION_CREDENTIALS path from config if provided
+                google_credentials_path_config = self.config.get('google_credentials_path')
+                current_google_creds_env = os.getenv('GOOGLE_APPLICATION_CREDENTIALS')
+
+                if google_credentials_path_config:
+                    resolved_credentials_path = os.path.abspath(google_credentials_path_config)
+                    if os.path.exists(resolved_credentials_path):
+                        os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = resolved_credentials_path
+                        logging.info(f"VisionAgentAbstract: Using GOOGLE_APPLICATION_CREDENTIALS from config: {resolved_credentials_path}")
+                    else:
+                        logging.warning(f"VisionAgentAbstract: google_credentials_path '{google_credentials_path_config}' (resolved to '{resolved_credentials_path}') from config not found.")
+                        if current_google_creds_env:
+                             logging.info(f"VisionAgentAbstract: Falling back to existing GOOGLE_APPLICATION_CREDENTIALS: {current_google_creds_env}")
+                        # If neither, ADC will be attempted by vertexai.init()
+
+                vertexai.init(project=project_id, location=location)
+                logging.info(f"VisionAgentAbstract: Vertex AI SDK initialized for project {project_id} in {location}.")
+                
+                safety_settings = {
+                    HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+                    HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+                    HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+                    HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+                }
                 # USER REQUIREMENT: Use gemini-2.5-pro-exp-03-25 for vision.
-                self.gemini_pro = genai.GenerativeModel('gemini-2.5-pro-exp-03-25')
-                logging.info("VisionAgentAbstract: Gemini Pro model initialized.")
-            except Exception as e:
-                logging.error(f"VisionAgentAbstract: Failed to initialize Gemini Pro model: {e}")
-                self.gemini_pro = None
+                self.gemini_vertex_model = vertex_generative_models.GenerativeModel(
+                    "gemini-2.5-pro-exp-03-25",
+                    safety_settings=safety_settings
+                )
+                logging.info("VisionAgentAbstract: Vertex AI Gemini Pro model (gemini-2.5-pro-exp-03-25) initialized.")
+        except ImportError:
+            logging.error("VisionAgentAbstract: vertexai library not found. Please install google-cloud-aiplatform.")
+            self.gemini_vertex_model = None
+        except Exception as e:
+            logging.error(f"VisionAgentAbstract: Failed to initialize Vertex AI Gemini Pro model: {e}", exc_info=True)
+            self.gemini_vertex_model = None
 
         grok_api_key = config.get('grok_api_key') if config and 'grok_api_key' in config else os.environ.get('GROK_API_KEY')
         if not grok_api_key:
@@ -128,8 +163,8 @@ class VisionAgentAbstract:
             # Load and preprocess image
             try:
                 with open(image_path, 'rb') as image_file:
-                    content = image_file.read()
-                img = Image.open(io.BytesIO(content))
+                    content = image_file.read() # image content in bytes
+                img = Image.open(io.BytesIO(content)) # PIL Image
             except UnidentifiedImageError as e:
                 logging.error(f"VisionAgentAbstract: Cannot identify image file (corrupted or unsupported format) in analyze_image: {image_path}. Error: {e}")
                 raise CorruptedImageError(f"Corrupted or unsupported image file: {image_path}") from e
@@ -193,24 +228,36 @@ class VisionAgentAbstract:
 
             # --- Dual-Model Analysis ---
 
-            # 1. Gemini Pro Analysis
+            # 1. Vertex AI Gemini Pro Analysis (formerly Gemini Pro Analysis)
             gemini_objects = []
-            if self.gemini_pro:
+            if self.gemini_vertex_model: # Use the new Vertex AI model attribute
                 try:
-                    gemini_response = self.gemini_pro.generate_content(
-                        contents=[abstract_prompt, img],
-                        generation_config=GenerationConfig(
-                            temperature=0.5, # Allow more interpretation for abstract art
-                            top_p=0.8,
-                            top_k=40
-                        )
+                    vertex_image_part = Part.from_image(VertexImage.from_bytes(content)) # Create Vertex AI Image Part from bytes
+                    
+                    # generation_config can be defined here if needed, using VertexGenerationConfig
+                    # e.g., gen_config = VertexGenerationConfig(temperature=0.3, response_mime_type="application/json")
+
+                    gemini_response = self.gemini_vertex_model.generate_content(
+                        contents=[abstract_prompt, vertex_image_part], # Pass Vertex AI Image Part
+                        # generation_config=gen_config # if defined
                     )
-                    gemini_results = self._parse_gemini_response(gemini_response.text)
-                    if gemini_results and "objects" in gemini_results:
-                        gemini_objects = gemini_results["objects"]
-                        logging.info(f"VisionAgentAbstract: Gemini Pro identified {len(gemini_objects)} objects.")
+                    
+                    # Assuming response.text provides the full text, suitable for _parse_gemini_response
+                    # Vertex AI's GenerateContentResponse has a .text attribute.
+                    if gemini_response.text:
+                        gemini_data = self._parse_gemini_response(gemini_response.text)
+                        if gemini_data and "objects" in gemini_data:
+                            gemini_objects = gemini_data["objects"]
+                            logging.info(f"VisionAgentAbstract: Parsed {len(gemini_objects)} objects from Vertex AI Gemini response.")
+                        else:
+                            logging.warning("VisionAgentAbstract: Failed to parse objects from Vertex AI Gemini response or 'objects' key missing in parsed data.")
+                    else:
+                        logging.warning("VisionAgentAbstract: Vertex AI Gemini response text is empty.")
+                        
                 except Exception as e:
-                    logging.error(f"VisionAgentAbstract: Error in Gemini Pro analysis: {e}")
+                    logging.error(f"VisionAgentAbstract: Vertex AI Gemini Pro analysis failed: {e}", exc_info=True)
+            else:
+                logging.warning("VisionAgentAbstract: Vertex AI Gemini model not available for analysis.")
 
             # 2. Grok Vision Analysis
             grok_objects = []
@@ -599,7 +646,7 @@ class VisionAgentAbstract:
             logging.exception(f"Error saving labeled version: {e}")
 
 
-    def _save_masked_version(self, img: Image.Image, analysis_results: Dict[str, Any], output_folder: str) -> None:
+    def _save_masked_version(self, img: Image.Image, analysis_results: Dict[str, Any], output_path: str) -> None:
         """Save version with masks for important objects only."""
         try:
             width, height = img.size
@@ -618,6 +665,8 @@ class VisionAgentAbstract:
             # Save in RGB mode
             if img.mode == 'RGBA':
                 img = img.convert('RGB')
+            # Ensure output directory exists before saving
+            os.makedirs(os.path.dirname(output_path), exist_ok=True)
             img.save(output_path, format='JPEG', quality=95)
 
         except Exception as e:

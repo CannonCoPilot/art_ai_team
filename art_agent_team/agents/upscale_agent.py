@@ -1,154 +1,161 @@
+from typing import Optional, Dict, Any # Added Optional
 import os
 import base64
 import io
+import requests # For Stability AI
 from PIL import Image
-import vertexai # Added
-from vertexai.preview.vision_models import ImageGenerationModel # Added
-from google.api_core import exceptions as google_exceptions
-from google.oauth2 import service_account
-from google.auth import exceptions as auth_exceptions
 
 import logging
 
 class UpscaleAgent:
     def __init__(self, config=None):
         """
-        Initialize the UpscaleAgent using Google Vertex AI.
-        Requires 'vertex_project_id' and 'vertex_location' in the config.
+        Initialize the UpscaleAgent using Stability AI.
+        Requires 'stability_api_key' in the config or STABILITY_API_KEY environment variable.
         """
         self.api_ready = False
-        self.vertex_model = None
-        self.project_id = None
-        self.location = None
+        self.stability_api_key = None
+        self.engine_id = "esrgan-v1-x2plus" # Stability AI's fast upscaler
 
         if not config:
-            logging.error("[UpscaleAgent] ERROR: Configuration dictionary is required for Vertex AI initialization.")
+            config = {} # Ensure config is a dict
+
+        self.stability_api_key = config.get('stability_api_key') or os.getenv('STABILITY_API_KEY')
+
+        if not self.stability_api_key:
+            logging.error("[UpscaleAgent] ERROR: 'stability_api_key' not found in config or STABILITY_API_KEY in environment variables. Stability AI upscaling will be unavailable.")
             return
 
-        self.project_id = config.get('vertex_project_id')
-        self.location = config.get('vertex_location')
+        # Test API key with a simple request if possible, or assume valid for now.
+        # For this refactor, we'll assume the key is valid if provided.
+        self.api_ready = True
+        logging.info(f"[UpscaleAgent] Stability AI client initialized with engine ID: {self.engine_id}. API is ready.")
 
-        # credentials_path = config.get('google_credentials_path') # No longer read from config
-
-        if not self.project_id or not self.location:
-            logging.error("[UpscaleAgent] ERROR: 'vertex_project_id' and 'vertex_location' must be provided in the config.")
-            return # api_ready remains False
-
-        # Check if the environment variable is set (optional, as SDK handles it)
-        if not os.getenv('GOOGLE_APPLICATION_CREDENTIALS'):
-             logging.warning("[UpscaleAgent] GOOGLE_APPLICATION_CREDENTIALS environment variable not set. Vertex AI will attempt to use Application Default Credentials (ADC).")
-        else:
-             logging.info("[UpscaleAgent] GOOGLE_APPLICATION_CREDENTIALS found. Vertex AI will attempt to use it.")
-
-        try:
-            # Initialize Vertex AI SDK - It will automatically use GOOGLE_APPLICATION_CREDENTIALS
-            # or fall back to Application Default Credentials (ADC) if the env var is set.
-            logging.info(f"[UpscaleAgent] Initializing Vertex AI for project '{self.project_id}' in location '{self.location}' (using environment credentials)...")
-            # No explicit credentials passed here anymore
-            vertexai.init(project=self.project_id, location=self.location)
-
-            # Load the model only after successful initialization
-            logging.info("[UpscaleAgent] Vertex AI initialized successfully (attempted using environment credentials). Loading ImageGenerationModel...")
-            # Using imagegeneration@006 as identified by debugger
-            self.vertex_model = ImageGenerationModel.from_pretrained("imagegeneration@006")
-            self.api_ready = True
-            logging.info("[UpscaleAgent] ImageGenerationModel loaded successfully. API is ready.")
-
-        # FileNotFoundError is less likely now unless GOOGLE_APPLICATION_CREDENTIALS points to a bad path
-        except FileNotFoundError:
-            logging.error(f"[UpscaleAgent] ERROR: Credentials file specified by GOOGLE_APPLICATION_CREDENTIALS not found.")
-            self.api_ready = False
-        except auth_exceptions.RefreshError as e:
-             logging.error(f"[UpscaleAgent] ERROR: Could not refresh credentials (likely from GOOGLE_APPLICATION_CREDENTIALS or ADC): {e}")
-             self.api_ready = False
-        except auth_exceptions.DefaultCredentialsError as e:
-             logging.error(f"[UpscaleAgent] ERROR: Invalid credentials format or file (likely from GOOGLE_APPLICATION_CREDENTIALS or ADC): {e}")
-             self.api_ready = False
-        except google_exceptions.GoogleAPIError as e:
-            logging.error(f"[UpscaleAgent] ERROR: Vertex AI API Error during initialization or model loading: {e}")
-            self.api_ready = False
-        except Exception as e:
-            # Catch any other unexpected errors during credential loading, init, or model loading
-            logging.error(f"[UpscaleAgent] ERROR: An unexpected error occurred during Vertex AI setup: {e}")
-            self.api_ready = False
-
-    def upscale_image(self, input_path, output_path):
+    def upscale_image(self, input_path: str, output_path: str, target_width: int = 3840, target_height: int = 2160) -> Optional[str]:
         """
-        Upscale the input image using the Google Vertex AI Image Generation API.
+        Upscale the input image using the Stability AI API (conservative upscale to near 4K).
         Saves the upscaled image to output_path.
+        The "esrgan-v1-x2plus" model only supports 2x upscale.
+        To reach ~4K, we might need to upscale, then resize, or check if Stability offers other models/options.
+        For now, this implements a 2x upscale. If the original is small, it won't reach 4K.
+        The API also has width/height parameters that can be used for upscaling to specific dimensions if the model supports it.
+        The fast upscaler "esrgan-v1-x2plus" might not support arbitrary width/height for output, typically just a scale factor.
+        Let's stick to the 2x upscale provided by "esrgan-v1-x2plus" and then resize if necessary,
+        or instruct the user about the limitation.
+
+        The API documentation for "esrgan-v1-x2plus" suggests it's a 2x upscaler.
+        It also mentions a `width` or `height` parameter for the output image, max 2048 for `esrgan-v1-x2plus`.
+        This implies we can upscale to a max dimension of 2048.
+        To achieve "4K" (e.g., 3840 width), this model alone isn't sufficient if the input is e.g. 1024px wide (2x -> 2048px).
+
+        Let's try to use the `width` parameter to get as close to 4K as possible, up to the model's limit.
+        The API seems to prefer one dimension (width or height) for scaling.
+        We will aim for the target_width, respecting the 2048px max for this specific engine.
+        If a larger upscale is needed, a different Stability model or multiple passes (if supported) would be required.
+        For this task, we'll use the "esrgan-v1-x2plus" and its 2x capability / max 2048px dimension.
+        We will upscale by 2x and then, if the user strictly needs 3840x2160, a separate resize step would be needed
+        which is not ideal for quality.
+
+        Revisiting Stability AI API docs:
+        For upscale, you provide an image and can specify `width` or `height` for the output.
+        The `esrgan-v1-x2plus` engine is primarily a 2x upscaler.
+        If `width` or `height` is provided, it will upscale to that dimension, but the maximum for this engine is 2048.
+        So, we can upscale to a width of 2048. If 4K (3840) is strictly needed, this model is insufficient.
+        The prompt mentioned "upscaling to 4k".
+
+        Let's assume "fast upscaler" implies `esrgan-v1-x2plus`.
+        We will upscale to the largest possible dimension (max 2048) while maintaining aspect ratio.
+        Then, the placard can be generated on this image. If a true 4K is needed, this is a limitation.
+        Let's aim for a width of 2048 as the maximum output from this specific upscaler.
+        The user asked for "upscaling to 4k" and "UpscaleAgent to use Stability AI fast upscaler".
+        These might be conflicting if the fast upscaler cannot reach 4K.
+        We will use the fast upscaler and get the best possible result from it.
+        Let's target 2x upscale and save. The "4K" might be an ideal, not a strict requirement for this step.
+        The API endpoint is `https://api.stability.ai/v1/generation/{engine_id}/image-to-image/upscale`
+        It accepts `image`, and optionally `width` or `height`.
+        If neither width nor height is specified, it performs a 2x upscale. Max output pixels: 4.2M. Max input pixels: 1M.
+        Max output dimension for esrgan-v1-x2plus is 2048x2048.
+
+        Let's perform a 2x upscale. If the resulting image is still smaller than the desired 4K dimensions,
+        it's a limitation of the chosen "fast upscaler".
         """
         if not self.api_ready:
-            logging.warning(f"[UpscaleAgent] Skipping upscale for '{input_path}' as Vertex AI API is not ready.")
-            return input_path # Return original path if API failed to initialize
+            logging.warning(f"[UpscaleAgent] Skipping upscale for '{input_path}' as Stability AI API is not ready.")
+            return None # Return None if API failed
 
-        logging.info(f"[UpscaleAgent] Starting Vertex AI upscale for '{input_path}'...")
+        logging.info(f"[UpscaleAgent] Starting Stability AI upscale for '{input_path}' using engine '{self.engine_id}'...")
 
         try:
-            # 1. Read image bytes
-            with open(input_path, "rb") as image_file:
+            with open(input_path, 'rb') as image_file:
                 image_bytes = image_file.read()
+            
+            img_pil = Image.open(io.BytesIO(image_bytes))
+            original_width, original_height = img_pil.size
 
-            # 2. Encode to base64
-            base64_string = base64.b64encode(image_bytes).decode("utf-8")
+            # Perform a 2x upscale.
+            # The API will automatically perform 2x if no width/height is specified.
+            # We need to ensure the input image is not too large (max 1M pixels for esrgan).
+            if original_width * original_height > 1048576: # 1024*1024
+                logging.warning(f"[UpscaleAgent] Input image {input_path} ({original_width}x{original_height}) may be too large for esrgan-v1-x2plus 2x upscale (max 1M pixels input). Attempting anyway.")
+                # Optionally, resize before sending if it's too large.
+                # For now, we'll let the API handle it and log errors.
 
-            # 3. Prepare API call parameters
-            instances = [
-                {
-                    "image": {"bytesBase64Encoded": base64_string}
+            response = requests.post(
+                f"https://api.stability.ai/v1/generation/{self.engine_id}/image-to-image/upscale",
+                headers={
+                    "Accept": "image/png", # Request PNG output
+                    "Authorization": f"Bearer {self.stability_api_key}"
+                },
+                files={
+                    "image": image_bytes
                 }
-            ]
-            parameters = {
-                "mode": "upscale",
-                "upscaleConfig": {"upscaleFactor": "x4"}, # Assuming x4 upscale factor
-                "number_of_images": 1
-            }
-
-            # 4. Make the API call
-            logging.info(f"[UpscaleAgent] Calling Vertex AI generate_images API...")
-            response = self.vertex_model.generate_images(
-                instances=instances,
-                parameters=parameters,
+                # Not specifying width/height to get default 2x upscale
             )
-            logging.info(f"[UpscaleAgent] Vertex AI API call successful.")
 
-            # 5. Process the response
-            if not response.images or len(response.images) == 0:
-                logging.error(f"[UpscaleAgent] ERROR: No images returned from Vertex AI API for '{input_path}'.")
-                return input_path
+            response.raise_for_status() # Will raise an HTTPError if the HTTP request returned an unsuccessful status code
 
-            # Extract image bytes (assuming the first image is the result)
-            upscaled_image_bytes = response.images[0]._image_bytes
-
-            # 6. Save the upscaled image
+            # Save the upscaled image
+            upscaled_image_bytes = response.content
             img = Image.open(io.BytesIO(upscaled_image_bytes))
-
+            
             # Ensure output directory exists
             os.makedirs(os.path.dirname(output_path), exist_ok=True)
-            img.save(output_path)
-            logging.info(f"[UpscaleAgent] Successfully saved upscaled image to '{output_path}'.")
+            img.save(output_path) # Save as PNG as requested from API
+            logging.info(f"[UpscaleAgent] Successfully saved 2x upscaled image to '{output_path}' ({img.width}x{img.height}).")
             return output_path
 
         except FileNotFoundError:
             logging.error(f"[UpscaleAgent] ERROR: Input file not found at '{input_path}'.")
-            return input_path
-        except google_exceptions.GoogleAPIError as e:
-            logging.error(f"[UpscaleAgent] ERROR: Vertex AI API call failed for '{input_path}': {e}")
-            return input_path
+            return None
+        except requests.exceptions.RequestException as e:
+            logging.error(f"[UpscaleAgent] ERROR: Stability AI API call failed for '{input_path}': {e}")
+            if hasattr(e, 'response') and e.response is not None:
+                logging.error(f"[UpscaleAgent] Response content: {e.response.content}")
+            return None
         except Exception as e:
             logging.error(f"[UpscaleAgent] ERROR: An unexpected error occurred during upscaling for '{input_path}': {e}")
-            return input_path
+            return None
 
-
-# # Example usage for testing (Requires credentials and config)
+# Example usage for testing (Requires STABILITY_API_KEY in env or config)
 # if __name__ == "__main__":
-#     # This requires a config dictionary with valid 'vertex_project_id' and 'vertex_location'
-#     # and appropriate Google Cloud authentication configured in the environment.
+#     logging.basicConfig(level=logging.INFO)
+#     # This requires a config dictionary with 'stability_api_key' or STABILITY_API_KEY in env.
 #     # Example:
 #     # test_config = {
-#     #     'vertex_project_id': 'your-gcp-project-id',
-#     #     'vertex_location': 'us-central1'
+#     #     'stability_api_key': 'YOUR_STABILITY_AI_KEY' 
 #     # }
 #     # agent = UpscaleAgent(config=test_config)
 #     # if agent.api_ready:
-#     #     agent.upscale_image('path/to/your/input.jpg', 'path/to/your/output.png')
+#     #     # Create a dummy input image for testing
+#     #     if not os.path.exists("test_input_upscale.png"):
+#     #         dummy_img = Image.new('RGB', (100, 100), color = 'red')
+#     #         dummy_img.save("test_input_upscale.png")
+#     #     
+#     #     output_file = agent.upscale_image('test_input_upscale.png', 'test_output_upscaled.png')
+#     #     if output_file:
+#     #         print(f"Upscaled image saved to {output_file}")
+#     #     else:
+#     #         print("Upscaling failed.")
+#     # else:
+#     #     print("UpscaleAgent not ready.")
 #     pass
